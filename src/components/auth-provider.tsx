@@ -12,6 +12,7 @@ import {
   User as FirebaseUser,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
 } from 'firebase/auth';
 import {
@@ -47,6 +48,7 @@ type AuthContextType = {
   signup: (username: string, email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<AppUser>) => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -78,7 +80,7 @@ async function fetchUserProfile(
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { auth, firestore, isUserLoading, user: firebaseUser } = useFirebase();
   const [appUser, setAppUser] = useState<AppUser | null>(null);
-  const [isProfileLoading, setProfileLoading] = useState(false);
+  const [isProfileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     const syncUser = async () => {
@@ -158,6 +160,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [appUser, firestore]
   );
 
+  const sendPasswordReset = useCallback(
+    async (email: string): Promise<void> => {
+      if (!auth) throw new Error('Firebase Auth not available');
+      await sendPasswordResetEmail(auth, email);
+    },
+    [auth]
+  );
+
   const value = {
     isLoggedIn: !!appUser,
     isLoading: isUserLoading || isProfileLoading,
@@ -166,6 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signup,
     logout,
     updateProfile,
+    sendPasswordReset,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
