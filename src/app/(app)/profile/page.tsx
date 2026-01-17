@@ -14,19 +14,40 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { zodiacSigns } from '@/lib/zodiac-signs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/hooks/use-translation';
+import { languages, type Language } from '@/lib/translations';
 
 const formSchema = z.object({
-  username: z.string().min(2, { message: 'Username must be at least 2 characters.' }),
+  username: z
+    .string()
+    .min(2, { message: 'Username must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email.' }),
   zodiacSign: z.string().optional(),
-  birthdate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Please use YYYY-MM-DD format.' }).optional().or(z.literal('')),
+  birthdate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Please use YYYY-MM-DD format.' })
+    .optional()
+    .or(z.literal('')),
+  language: z.string().optional(),
 });
 
 export default function ProfilePage() {
@@ -34,6 +55,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { t, setLanguage, language } = useTranslation();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,25 +64,27 @@ export default function ProfilePage() {
       email: user?.email || '',
       zodiacSign: user?.zodiacSign || '',
       birthdate: user?.birthdate ? user.birthdate.split('T')[0] : '',
+      language: language,
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      const profileData = {
+      const profileData: Partial<z.infer<typeof formSchema>> = {
         ...values,
         birthdate: values.birthdate || null,
       };
+      delete profileData.language;
       await updateProfile(profileData);
       toast({
-        title: 'Profile Updated',
-        description: 'Your information has been saved.',
+        title: t('profile_update_success_title'),
+        description: t('profile_update_success_description'),
       });
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Update Failed',
+        title: t('profile_update_fail_title'),
         description: (error as Error).message,
       });
     } finally {
@@ -72,22 +96,26 @@ export default function ProfilePage() {
     await logout();
     router.push('/login');
     toast({
-        title: 'Logged Out',
-        description: 'You have been successfully logged out.',
+      title: t('logout_success_title'),
+      description: t('logout_success_description'),
     });
-  }
+  };
 
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8">
       <div className="border-b pb-4">
-        <h1 className="font-headline text-3xl font-bold tracking-tight md:text-4xl">Profile & Settings</h1>
-        <p className="text-lg text-muted-foreground">Manage your account information.</p>
+        <h1 className="font-headline text-3xl font-bold tracking-tight md:text-4xl">
+          {t('profile_title')}
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          {t('profile_description')}
+        </p>
       </div>
 
-      <Card className="mt-8 max-w-2xl mx-auto">
+      <Card className="mx-auto mt-8 max-w-2xl">
         <CardHeader>
-          <CardTitle>Your Information</CardTitle>
-          <CardDescription>Update your personal details here.</CardDescription>
+          <CardTitle>{t('profile_form_title')}</CardTitle>
+          <CardDescription>{t('profile_form_description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -97,9 +125,12 @@ export default function ProfilePage() {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>{t('profile_username')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your Name" {...field} />
+                      <Input
+                        placeholder={t('profile_username_placeholder')}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -110,9 +141,13 @@ export default function ProfilePage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('profile_email')}</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="name@example.com" {...field} />
+                      <Input
+                        type="email"
+                        placeholder="name@example.com"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -123,15 +158,20 @@ export default function ProfilePage() {
                 name="zodiacSign"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Zodiac Sign</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormLabel>{t('profile_zodiac')}</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select your zodiac sign" />
+                          <SelectValue
+                            placeholder={t('profile_zodiac_placeholder')}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {zodiacSigns.map((sign) => (
+                        {zodiacSigns.map(sign => (
                           <SelectItem key={sign} value={sign}>
                             {sign}
                           </SelectItem>
@@ -139,34 +179,80 @@ export default function ProfilePage() {
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      This is used for personalized affirmations if you are a Pro member.
+                      {t('profile_zodiac_description')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-               <FormField
+              <FormField
                 control={form.control}
                 name="birthdate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Birthdate</FormLabel>
+                    <FormLabel>{t('profile_birthdate')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="YYYY-MM-DD" {...field} value={field.value ?? ''} />
+                      <Input
+                        placeholder={t('profile_birthdate_placeholder')}
+                        {...field}
+                        value={field.value ?? ''}
+                      />
                     </FormControl>
                     <FormDescription>
-                      Your date of birth is used to enhance affirmation personalization.
+                      {t('profile_birthdate_description')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-                  {isLoading ? 'Saving...' : 'Save Changes'}
+              <FormField
+                control={form.control}
+                name="language"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('profile_language')}</FormLabel>
+                    <Select
+                      onValueChange={value => {
+                        field.onChange(value);
+                        setLanguage(value as Language);
+                      }}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={t('profile_language_placeholder')}
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {languages.map(lang => (
+                          <SelectItem key={lang.key} value={lang.key}>
+                            {lang.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full sm:w-auto"
+                >
+                  {isLoading
+                    ? t('profile_saving_button')
+                    : t('profile_save_button')}
                 </Button>
-                <Button variant="destructive" onClick={handleLogout} className="w-full sm:w-auto">
-                    Logout
+                <Button
+                  variant="destructive"
+                  onClick={handleLogout}
+                  className="w-full sm:w-auto"
+                >
+                  {t('profile_logout_button')}
                 </Button>
               </div>
             </form>

@@ -21,24 +21,27 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { useState } from 'react';
+import { useTranslation } from '@/hooks/use-translation';
+import type { Translations } from '@/lib/translations';
 
 const navItems = [
-  { href: '/home', label: 'Home', icon: Home, pro: false },
-  { href: '/journal', label: 'Journal', icon: PenSquare, pro: false },
-  { href: '/meditations', label: 'Meditate', icon: Headphones, pro: false },
-  { href: '/soundscapes', label: 'Sounds', icon: Music, pro: false },
-  { href: '/dream-journal', label: 'Dreams', icon: Moon, pro: true },
-  { href: '/journal-history', label: 'History', icon: History, pro: true },
+  { href: '/home', labelKey: 'nav_home', icon: Home, pro: false },
+  { href: '/journal', labelKey: 'nav_journal', icon: PenSquare, pro: false },
+  { href: '/meditations', labelKey: 'nav_meditate', icon: Headphones, pro: false },
+  { href: '/soundscapes', labelKey: 'nav_sounds', icon: Music, pro: false },
+  { href: '/dream-journal', labelKey: 'nav_dreams', icon: Moon, pro: true },
+  { href: '/journal-history', labelKey: 'nav_history', icon: History, pro: true },
 ];
 
 const accountNavItems = [
-    { href: '/pricing', label: 'Upgrade', icon: Gem },
-    { href: '/profile', label: 'Profile', icon: UserCircle },
+    { href: '/pricing', labelKey: 'nav_upgrade', icon: Gem },
+    { href: '/profile', labelKey: 'nav_profile', icon: UserCircle },
 ]
 
-const NavLink = ({ href, label, icon: Icon, pathname, isMobile, closeSheet }: { href: string; label: string; icon: React.ElementType; pathname: string; isMobile: boolean; closeSheet?: () => void }) => {
+const NavLink = ({ href, labelKey, icon: Icon, pathname, isMobile, closeSheet, t }: { href: string; labelKey: keyof Translations; icon: React.ElementType; pathname: string; isMobile: boolean; closeSheet?: () => void; t: (key: keyof Translations) => string; }) => {
   const isActive = pathname === href;
   const Comp = isMobile ? 'div' : 'div';
+  const label = t(labelKey);
   return (
     <Link href={href} passHref legacyBehavior>
       <a onClick={closeSheet}>
@@ -63,13 +66,14 @@ function DesktopNav({ pathname }: { pathname: string }) {
   const router = useRouter();
   const { toast } = useToast();
   const avatarUrl = PlaceHolderImages.find(p => p.id === 'user-avatar')?.imageUrl;
+  const { t } = useTranslation();
 
   const handleLogout = async () => {
     await logout();
     router.push('/login');
     toast({
-        title: 'Logged Out',
-        description: 'You have been successfully logged out.',
+        title: t('logout_success_title'),
+        description: t('logout_success_description'),
     });
   }
 
@@ -83,7 +87,7 @@ function DesktopNav({ pathname }: { pathname: string }) {
         {navItems.filter(item => !item.pro || user?.isUpgraded).map((item) => (
           <Link key={item.href} href={item.href} className={cn("flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8", pathname.startsWith(item.href) && "bg-accent text-accent-foreground")}>
              <item.icon className="h-5 w-5" />
-             <span className="sr-only">{item.label}</span>
+             <span className="sr-only">{t(item.labelKey as keyof Translations)}</span>
           </Link>
         ))}
       </nav>
@@ -98,12 +102,12 @@ function DesktopNav({ pathname }: { pathname: string }) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="right" align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>{t('my_account')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link href="/pricing">Billing</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link href="/profile">{t('nav_profile')}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link href="/pricing">{t('nav_billing')}</Link></DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>{t('nav_logout')}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </nav>
@@ -114,6 +118,7 @@ function DesktopNav({ pathname }: { pathname: string }) {
 function MobileNav({ pathname }: { pathname: string }) {
     const [open, setOpen] = useState(false);
     const { user } = useAuth();
+    const { t } = useTranslation();
   
     return (
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
@@ -131,11 +136,11 @@ function MobileNav({ pathname }: { pathname: string }) {
                             <span className="sr-only">Cielo</span>
                         </Link>
                         {navItems.filter(item => !item.pro || user?.isUpgraded).map((item) => (
-                            <NavLink key={item.href} {...item} pathname={pathname} isMobile={false} closeSheet={() => setOpen(false)} />
+                            <NavLink key={item.href} {...item} labelKey={item.labelKey as keyof Translations} pathname={pathname} isMobile={false} closeSheet={() => setOpen(false)} t={t} />
                         ))}
                         <DropdownMenuSeparator />
                         {accountNavItems.map((item) => (
-                            <NavLink key={item.href} {...item} pathname={pathname} isMobile={false} closeSheet={() => setOpen(false)} />
+                            <NavLink key={item.href} {...item} labelKey={item.labelKey as keyof Translations} pathname={pathname} isMobile={false} closeSheet={() => setOpen(false)} t={t}/>
                         ))}
                     </nav>
                 </SheetContent>
