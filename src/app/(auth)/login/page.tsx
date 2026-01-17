@@ -48,7 +48,9 @@ export default function LoginPage() {
         title: 'Login Successful',
         description: "Welcome back to Cielo!",
       });
-      router.push('/home');
+      // Force a full page reload to ensure all providers re-initialize correctly.
+      // This avoids race conditions with the auth state during client-side navigation.
+      window.location.assign('/home');
     } catch (error) {
       let description = 'An unexpected error occurred. Please try again.';
       if (error instanceof FirebaseError) {
