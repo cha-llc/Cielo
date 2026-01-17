@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
-import { ArrowRight, BrainCircuit, HeartHandshake, Sparkles } from 'lucide-react';
+import { ArrowRight, BrainCircuit, Headphones, Sparkles, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useEffect } from 'react';
@@ -17,13 +17,18 @@ const features = [
   },
   {
     icon: <BrainCircuit className="h-8 w-8 text-primary" />,
-    title: 'Mood Journaling',
-    description: 'Track your emotional landscape and gain insights with our intelligent sentiment analysis.',
+    title: 'Mood & Dream Journal',
+    description: 'Track your emotional landscape and interpret your dreams with our intelligent AI analysis.',
   },
   {
-    icon: <HeartHandshake className="h-8 w-8 text-primary" />,
-    title: 'Zodiac Personalization',
-    description: 'Upgrade to unlock affirmations tailored to your zodiac sign, aligning with your cosmic energy.',
+    icon: <Headphones className="h-8 w-8 text-primary" />,
+    title: 'Guided Meditations',
+    description: 'Access a library of guided meditations and calming soundscapes to find your inner peace.',
+  },
+  {
+    icon: <Users className="h-8 w-8 text-primary" />,
+    title: 'Supportive Community',
+    description: 'Connect anonymously with others, share affirmations, and grow in a positive space.',
   },
 ];
 
@@ -83,7 +88,7 @@ function LandingPage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:gap-16 pt-12">
+            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-2 lg:gap-16 pt-12">
               {features.map((feature) => (
                 <div key={feature.title} className="flex flex-col items-center text-center gap-4 p-4 rounded-lg transition-colors hover:bg-background/50">
                   {feature.icon}

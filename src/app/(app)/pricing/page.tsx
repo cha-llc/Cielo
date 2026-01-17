@@ -8,12 +8,20 @@ import { Check, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-const freeFeatures = ['Daily AI Affirmations', 'Mood Journal & Basic Sentiment', 'Community Access'];
+const freeFeatures = [
+  'Daily AI Affirmations',
+  'Mood Journal & Basic Sentiment',
+  'Breathing Exercises',
+  'Community Access',
+];
 const proFeatures = [
   ...freeFeatures,
   'Personalized Zodiac Affirmations',
   'Advanced Sentiment Analysis',
   'Journal History',
+  'Guided Meditations',
+  'Soundscapes',
+  'AI Dream Journal',
   'Priority Support',
 ];
 
