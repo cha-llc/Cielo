@@ -22,7 +22,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { useFirebase }from '@/firebase/provider';
-import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
 // This is the shape of the user profile data stored in Firestore
@@ -79,22 +79,22 @@ async function fetchUserProfile(
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { auth, firestore, isUserLoading, user: firebaseUser } = useFirebase();
   const [appUser, setAppUser] = useState<AppUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isProfileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     const syncUser = async () => {
-        setIsLoading(true);
+        setProfileLoading(true);
         if (firebaseUser && firestore) {
             const userProfile = await fetchUserProfile(firestore, firebaseUser);
             setAppUser(userProfile);
         } else {
             setAppUser(null);
         }
-        setIsLoading(isUserLoading);
+        setProfileLoading(false);
     }
     syncUser();
 
-  }, [firebaseUser, firestore, isUserLoading]);
+  }, [firebaseUser, firestore]);
 
 
   const login = useCallback(
@@ -130,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
       
       const userRef = doc(firestore, 'users', user.uid);
-      setDocumentNonBlocking(userRef, newUserProfile, {});
+      await setDoc(userRef, newUserProfile);
     },
     [auth, firestore]
   );
@@ -160,7 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = {
     isLoggedIn: !!appUser,
-    isLoading: isLoading,
+    isLoading: isProfileLoading || isUserLoading,
     user: appUser,
     login,
     signup,
