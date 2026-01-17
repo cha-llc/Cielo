@@ -3,6 +3,7 @@
 import { generateDailyAffirmation } from '@/ai/flows/generate-daily-affirmation';
 import { analyzeMoodJournalSentiment } from '@/ai/flows/analyze-mood-journal-sentiment';
 import { generateGuidedMeditation } from '@/ai/flows/generate-guided-meditation';
+import { generateSoundscape } from '@/ai/flows/generate-soundscape';
 
 export async function getAffirmation(params: {
   zodiacSign: string | null;
@@ -53,5 +54,21 @@ export async function getGuidedMeditation(topic: string): Promise<GuidedMeditati
   } catch (error) {
     console.error('Error generating guided meditation:', error);
     return { title: "Error", script: (error as Error).message || "Could not generate meditation.", audioDataUri: "" };
+  }
+}
+
+export type Soundscape = {
+  title: string;
+  script: string;
+  audioDataUri: string;
+} | null;
+
+export async function getSoundscape(topic: string): Promise<Soundscape> {
+  try {
+    const result = await generateSoundscape({ topic });
+    return result;
+  } catch (error) {
+    console.error('Error generating soundscape:', error);
+    return { title: "Error", script: (error as Error).message || "Could not generate soundscape.", audioDataUri: "" };
   }
 }

@@ -5,3 +5,4 @@ import '@/ai/flows/generate-daily-affirmation.ts';
 import '@/ai/flows/analyze-mood-journal-sentiment.ts';
 import '@/ai/flows/personalize-affirmation-with-zodiac.ts';
 import '@/ai/flows/generate-guided-meditation.ts';
+import '@/ai/flows/generate-soundscape.ts';
