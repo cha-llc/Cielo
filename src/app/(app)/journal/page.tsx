@@ -1,6 +1,6 @@
 'use client';
 
-import { analyzeSentiment, type SentimentAnalysis } from '@/app/actions';
+import { analyzeSentiment, advancedAnalyzeSentiment, type SentimentAnalysis } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -8,10 +8,12 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { BrainCircuit, Loader2 } from 'lucide-react';
+import { BrainCircuit, Loader2, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
+import { useAuth } from '@/hooks/use-auth';
+import { Badge } from '@/components/ui/badge';
 
 const formSchema = z.object({
   journalEntry: z.string().min(10, {
@@ -23,6 +25,7 @@ export default function JournalPage() {
   const [analysis, setAnalysis] = useState<SentimentAnalysis>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -32,7 +35,10 @@ export default function JournalPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     setAnalysis(null);
-    const result = await analyzeSentiment(values.journalEntry);
+
+    const analysisFn = user?.isUpgraded ? advancedAnalyzeSentiment : analyzeSentiment;
+    const result = await analysisFn(values.journalEntry);
+
     if (result?.sentiment === 'Error') {
       toast({
         variant: 'destructive',
@@ -52,6 +58,7 @@ export default function JournalPage() {
       case 'negative':
         return 'bg-primary';
       case 'neutral':
+      case 'mixed':
         return 'bg-muted-foreground';
       default:
         return 'bg-secondary';
@@ -71,7 +78,11 @@ export default function JournalPage() {
         <Card>
           <CardHeader>
             <CardTitle>New Entry</CardTitle>
-            <CardDescription>How are you feeling today? Write it down.</CardDescription>
+            <CardDescription>
+                {user?.isUpgraded 
+                    ? 'Describe your day for an advanced AI analysis.' 
+                    : 'How are you feeling today? Write it down.'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -97,8 +108,8 @@ export default function JournalPage() {
                     </>
                   ) : (
                     <>
-                      <BrainCircuit className="mr-2 h-4 w-4" />
-                      Analyze Sentiment
+                      {user?.isUpgraded ? <Sparkles className="mr-2 h-4 w-4" /> : <BrainCircuit className="mr-2 h-4 w-4" />}
+                      {user?.isUpgraded ? 'Run Advanced Analysis' : 'Analyze Sentiment'}
                     </>
                   )}
                 </Button>
@@ -110,7 +121,12 @@ export default function JournalPage() {
         <Card>
           <CardHeader>
             <CardTitle>Sentiment Analysis</CardTitle>
-            <CardDescription>AI-powered insights into your entry.</CardDescription>
+            <CardDescription>
+                {user?.isUpgraded 
+                    ? 'AI-powered pro insights into your entry.'
+                    : 'AI-powered insights into your entry.'
+                }
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -125,7 +141,7 @@ export default function JournalPage() {
                 </div>
                 <div>
                   <FormLabel>Sentiment Score</FormLabel>
-                  <Progress value={sentimentScore} indicatorClassName={getSentimentColor(analysis.sentiment)} />
+                  <Progress value={sentimentScore} className="h-2" />
                   <div className="mt-1 flex justify-between text-xs text-muted-foreground">
                     <span>Negative</span>
                     <span>Neutral</span>
@@ -136,6 +152,22 @@ export default function JournalPage() {
                   <FormLabel>Deeper Analysis</FormLabel>
                   <p className="text-sm text-foreground">{analysis.analysis}</p>
                 </div>
+                {analysis.keyEmotions && analysis.keyEmotions.length > 0 && (
+                    <div>
+                        <FormLabel>Key Emotions</FormLabel>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            {analysis.keyEmotions.map(emotion => (
+                                <Badge key={emotion} variant="secondary">{emotion}</Badge>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {analysis.actionableAdvice && (
+                    <div>
+                        <FormLabel>Actionable Advice</FormLabel>
+                        <p className="text-sm text-foreground italic border-l-2 border-primary pl-3 mt-2">{analysis.actionableAdvice}</p>
+                    </div>
+                )}
               </div>
             ) : (
               <div className="flex h-[280px] items-center justify-center rounded-lg border border-dashed text-center text-muted-foreground">

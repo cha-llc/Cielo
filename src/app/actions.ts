@@ -4,6 +4,8 @@ import { generateDailyAffirmation } from '@/ai/flows/generate-daily-affirmation'
 import { analyzeMoodJournalSentiment } from '@/ai/flows/analyze-mood-journal-sentiment';
 import { generateGuidedMeditation } from '@/ai/flows/generate-guided-meditation';
 import { generateSoundscape } from '@/ai/flows/generate-soundscape';
+import { interpretDream } from '@/ai/flows/interpret-dream';
+import { advancedAnalyzeSentiment as advancedSentimentFlow } from '@/ai/flows/advanced-analyze-sentiment';
 
 export async function getAffirmation(params: {
   zodiacSign: string | null;
@@ -26,6 +28,8 @@ export type SentimentAnalysis = {
   sentiment: string;
   score: number;
   analysis: string;
+  keyEmotions?: string[];
+  actionableAdvice?: string;
 } | null;
 
 export async function analyzeSentiment(journalEntry: string): Promise<SentimentAnalysis> {
@@ -38,6 +42,19 @@ export async function analyzeSentiment(journalEntry: string): Promise<SentimentA
   } catch (error) {
     console.error('Error analyzing sentiment:', error);
     return { sentiment: "Error", score: 0, analysis: "Could not analyze the sentiment of your journal entry." };
+  }
+}
+
+export async function advancedAnalyzeSentiment(journalEntry: string): Promise<SentimentAnalysis> {
+  if (!journalEntry.trim()) {
+    return null;
+  }
+  try {
+    const result = await advancedSentimentFlow({ journalEntry });
+    return result;
+  } catch (error) {
+    console.error('Error analyzing advanced sentiment:', error);
+    return { sentiment: "Error", score: 0, analysis: "Could not perform advanced analysis on your journal entry." };
   }
 }
 
@@ -71,4 +88,23 @@ export async function getSoundscape(topic: string): Promise<Soundscape> {
     console.error('Error generating soundscape:', error);
     return { title: "Error", script: (error as Error).message || "Could not generate soundscape.", audioDataUri: "" };
   }
+}
+
+export type DreamInterpretation = {
+    analysis: string;
+    sentiment: string;
+    symbols: {
+        symbol: string;
+        meaning: string;
+    }[];
+} | null;
+
+export async function getDreamInterpretation(dreamDescription: string): Promise<DreamInterpretation> {
+    try {
+        const result = await interpretDream({ dreamDescription });
+        return result;
+    } catch (error) {
+        console.error('Error interpreting dream:', error);
+        return { analysis: "Could not interpret your dream at this time. Please try again.", sentiment: "Error", symbols: [] };
+    }
 }
