@@ -13,7 +13,7 @@ import {googleAI} from '@genkit-ai/google-genai';
 import {z} from 'genkit';
 import wav from 'wav';
 
-export const GenerateGuidedMeditationInputSchema = z.object({
+const GenerateGuidedMeditationInputSchema = z.object({
   topic: z
     .string()
     .describe('The topic for the guided meditation, e.g., "Stress Relief".'),
@@ -22,7 +22,7 @@ export type GenerateGuidedMeditationInput = z.infer<
   typeof GenerateGuidedMeditationInputSchema
 >;
 
-export const GenerateGuidedMeditationOutputSchema = z.object({
+const GenerateGuidedMeditationOutputSchema = z.object({
   title: z.string().describe('The title of the meditation.'),
   script: z.string().describe('The full script of the guided meditation.'),
   audioDataUri: z
