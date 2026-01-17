@@ -17,14 +17,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    // If loading is finished and the user is not logged in, redirect to login.
     if (!isLoading && !isLoggedIn) {
       router.replace('/login');
     }
   }, [isLoggedIn, isLoading, router]);
 
-  const isProRoute = proRoutes.includes(pathname);
-  const canAccess = !isProRoute || (isProRoute && user?.isUpgraded);
-
+  // While checking auth state or if the user is not logged in (and about to be redirected),
+  // show a loading screen. This prevents a flash of protected content.
   if (isLoading || !isLoggedIn) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -32,6 +32,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
+
+  // At this point, we know the user is logged in.
+  const isProRoute = proRoutes.includes(pathname);
+  const canAccess = !isProRoute || (isProRoute && user?.isUpgraded);
 
   return (
     <div className="relative flex min-h-screen w-full">
