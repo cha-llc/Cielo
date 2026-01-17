@@ -16,6 +16,12 @@ const GenerateDailyAffirmationInputSchema = z.object({
     .string()
     .optional()
     .describe('Optional zodiac sign for personalized affirmation.'),
+  birthdate: z
+    .string()
+    .optional()
+    .describe(
+      'Optional birthdate for personalized affirmation (ISO 8601 format).'
+    ),
 });
 export type GenerateDailyAffirmationInput = z.infer<
   typeof GenerateDailyAffirmationInputSchema
@@ -42,6 +48,9 @@ const prompt = ai.definePrompt({
 
   {{#if zodiacSign}}
   Personalize the affirmation for the zodiac sign: {{zodiacSign}}.
+  {{/if}}
+  {{#if birthdate}}
+  Further personalize it considering the user's birthdate: {{birthdate}}.
   {{/if}}
   `,
 });

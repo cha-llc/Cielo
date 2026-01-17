@@ -21,11 +21,13 @@ import { useState } from 'react';
 import { zodiacSigns } from '@/lib/zodiac-signs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
+import { DatePicker } from '@/components/ui/datepicker';
 
 const formSchema = z.object({
   username: z.string().min(2, { message: 'Username must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email.' }),
   zodiacSign: z.string().optional(),
+  birthdate: z.date().optional(),
 });
 
 export default function ProfilePage() {
@@ -40,13 +42,18 @@ export default function ProfilePage() {
       username: user?.username || '',
       email: user?.email || '',
       zodiacSign: user?.zodiacSign || '',
+      birthdate: user?.birthdate ? new Date(user.birthdate) : undefined,
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      await updateProfile(values);
+      const profileData = {
+        ...values,
+        birthdate: values.birthdate ? values.birthdate.toISOString() : null,
+      };
+      await updateProfile(profileData);
       toast({
         title: 'Profile Updated',
         description: 'Your information has been saved.',
@@ -134,6 +141,23 @@ export default function ProfilePage() {
                     </Select>
                     <FormDescription>
                       This is used for personalized affirmations if you are a Pro member.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="birthdate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Date of birth</FormLabel>
+                    <DatePicker
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                    <FormDescription>
+                      Your date of birth is used to enhance affirmation personalization.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

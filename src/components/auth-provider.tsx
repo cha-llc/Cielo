@@ -7,6 +7,7 @@ type User = {
   email: string;
   isUpgraded: boolean;
   zodiacSign: string | null;
+  birthdate: string | null;
 };
 
 type AuthContextType = {
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: email,
         isUpgraded: false,
         zodiacSign: null,
+        birthdate: null,
       };
       localStorage.setItem('cielo-user', JSON.stringify(mockUser));
       setUser(mockUser);

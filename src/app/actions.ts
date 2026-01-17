@@ -3,13 +3,20 @@
 import { generateDailyAffirmation } from '@/ai/flows/generate-daily-affirmation';
 import { analyzeMoodJournalSentiment } from '@/ai/flows/analyze-mood-journal-sentiment';
 
-export async function getAffirmation(zodiacSign: string | null) {
+export async function getAffirmation(params: {
+  zodiacSign: string | null;
+  birthdate: string | null;
+}) {
   try {
-    const result = await generateDailyAffirmation({ zodiacSign: zodiacSign ?? undefined });
+    const { zodiacSign, birthdate } = params;
+    const result = await generateDailyAffirmation({
+      zodiacSign: zodiacSign ?? undefined,
+      birthdate: birthdate ?? undefined,
+    });
     return result.affirmation;
   } catch (error) {
     console.error('Error generating affirmation:', error);
-    return "Could not generate an affirmation at this time. Please try again later.";
+    return 'Could not generate an affirmation at this time. Please try again later.';
   }
 }
 

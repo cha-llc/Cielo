@@ -18,7 +18,7 @@ const freeFeatures = [
 ];
 const proFeatures = [
   ...freeFeatures,
-  'Personalized Zodiac Affirmations',
+  'Personalized affirmations (Zodiac & Birthdate)',
   'Advanced Sentiment Analysis',
   'Journal History',
   'AI Dream Journal',

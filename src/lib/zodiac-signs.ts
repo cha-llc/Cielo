@@ -7,6 +7,7 @@ export const zodiacSigns = [
     "Virgo",
     "Libra",
     "Scorpio",
+    "Ophiuchus",
     "Sagittarius",
     "Capricorn",
     "Aquarius",

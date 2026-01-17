@@ -18,7 +18,8 @@ export default function HomePage() {
   const fetchAffirmation = useCallback(() => {
     startTransition(async () => {
       const zodiacSign = user?.isUpgraded ? user.zodiacSign : null;
-      const result = await getAffirmation(zodiacSign);
+      const birthdate = user?.isUpgraded ? user.birthdate : null;
+      const result = await getAffirmation({ zodiacSign, birthdate });
       if (result.startsWith('Could not generate')) {
         toast({
           variant: 'destructive',
@@ -51,8 +52,11 @@ export default function HomePage() {
       </div>
 
       <div className="mt-8 flex items-center justify-center">
-        <Card className="w-full max-w-2xl bg-gradient-to-br from-card to-secondary shadow-lg">
+        <Card className="w-full max-w-2xl bg-gradient-to-br from-primary/20 to-card shadow-lg">
           <CardContent className="p-8">
+            <div className="flex justify-center mb-4">
+              <Sparkles className="h-8 w-8 text-primary" />
+            </div>
             {isLoading && !affirmation ? (
               <div className="flex h-32 items-center justify-center">
                 <p className="text-lg text-muted-foreground">Generating your affirmation...</p>
@@ -78,7 +82,7 @@ export default function HomePage() {
             </CardHeader>
             <CardContent>
               <CardDescription className="text-primary/80">
-                Personalize your affirmations based on your zodiac sign.
+                Personalize your affirmations based on your zodiac sign and birthdate.
               </CardDescription>
               <Button asChild className="mt-4">
                 <Link href="/pricing">Upgrade to Pro</Link>
