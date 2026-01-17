@@ -19,6 +19,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { FirebaseError } from 'firebase/app';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -49,10 +50,25 @@ export default function LoginPage() {
       });
       router.push('/home');
     } catch (error) {
+      let description = 'An unexpected error occurred. Please try again.';
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            description = 'Invalid email or password. Please try again.';
+            break;
+          default:
+            description = error.message;
+            break;
+        }
+      } else if (error instanceof Error) {
+        description = error.message;
+      }
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: (error as Error).message,
+        description,
       });
       setIsLoading(false);
     }

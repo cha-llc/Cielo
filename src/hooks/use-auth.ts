@@ -6,7 +6,7 @@ import { AuthContext } from '@/components/auth-provider';
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider wrapped in a FirebaseClientProvider');
   }
   return context;
 };

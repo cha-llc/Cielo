@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { zodiacSigns } from '@/lib/zodiac-signs';
 import {
   Select,
@@ -40,7 +40,7 @@ const formSchema = z.object({
   username: z
     .string()
     .min(2, { message: 'Username must be at least 2 characters.' }),
-  email: z.string().email({ message: 'Please enter a valid email.' }),
+  email: z.string().email({ message: 'Please enter a valid email.' }).optional(),
   zodiacSign: z.string().optional(),
   birthdate: z
     .string()
@@ -59,7 +59,7 @@ export default function ProfilePage() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    values: {
       username: user?.username || '',
       email: user?.email || '',
       zodiacSign: user?.zodiacSign || '',
@@ -67,6 +67,17 @@ export default function ProfilePage() {
       language: language,
     },
   });
+
+  useEffect(() => {
+    form.reset({
+      username: user?.username || '',
+      email: user?.email || '',
+      zodiacSign: user?.zodiacSign || '',
+      birthdate: user?.birthdate ? user.birthdate.split('T')[0] : '',
+      language: language,
+    });
+  }, [user, language, form]);
+
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
@@ -76,6 +87,7 @@ export default function ProfilePage() {
         birthdate: values.birthdate || null,
       };
       delete profileData.language;
+      delete profileData.email; // Email cannot be updated from here
       await updateProfile(profileData);
       toast({
         title: t('profile_update_success_title'),
@@ -147,8 +159,12 @@ export default function ProfilePage() {
                         type="email"
                         placeholder="name@example.com"
                         {...field}
+                        disabled
                       />
                     </FormControl>
+                     <FormDescription>
+                      Your email address cannot be changed.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

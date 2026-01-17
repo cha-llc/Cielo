@@ -19,6 +19,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { FirebaseError } from 'firebase/app';
 
 const formSchema = z.object({
   username: z.string().min(2, { message: 'Username must be at least 2 characters.' }),
@@ -51,10 +52,26 @@ export default function SignupPage() {
       });
       router.push('/login');
     } catch (error) {
+      let description = 'An unexpected error occurred. Please try again.';
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            description = 'This email is already in use by another account.';
+            break;
+          case 'auth/weak-password':
+            description = 'The password is too weak. Please choose a stronger password.';
+            break;
+          default:
+            description = error.message;
+            break;
+        }
+      } else if (error instanceof Error) {
+        description = error.message;
+      }
       toast({
         variant: 'destructive',
         title: 'Signup Failed',
-        description: (error as Error).message,
+        description,
       });
       setIsLoading(false);
     }
