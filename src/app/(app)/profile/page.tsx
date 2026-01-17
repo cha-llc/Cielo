@@ -21,13 +21,12 @@ import { useState } from 'react';
 import { zodiacSigns } from '@/lib/zodiac-signs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
-import { DatePicker } from '@/components/ui/datepicker';
 
 const formSchema = z.object({
   username: z.string().min(2, { message: 'Username must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email.' }),
   zodiacSign: z.string().optional(),
-  birthdate: z.date().optional(),
+  birthdate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Please use YYYY-MM-DD format.' }).optional().or(z.literal('')),
 });
 
 export default function ProfilePage() {
@@ -42,7 +41,7 @@ export default function ProfilePage() {
       username: user?.username || '',
       email: user?.email || '',
       zodiacSign: user?.zodiacSign || '',
-      birthdate: user?.birthdate ? new Date(user.birthdate) : undefined,
+      birthdate: user?.birthdate ? user.birthdate.split('T')[0] : '',
     },
   });
 
@@ -51,7 +50,7 @@ export default function ProfilePage() {
     try {
       const profileData = {
         ...values,
-        birthdate: values.birthdate ? values.birthdate.toISOString() : null,
+        birthdate: values.birthdate || null,
       };
       await updateProfile(profileData);
       toast({
@@ -150,12 +149,11 @@ export default function ProfilePage() {
                 control={form.control}
                 name="birthdate"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Date of birth</FormLabel>
-                    <DatePicker
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
+                  <FormItem>
+                    <FormLabel>Birthdate</FormLabel>
+                    <FormControl>
+                      <Input placeholder="YYYY-MM-DD" {...field} value={field.value ?? ''} />
+                    </FormControl>
                     <FormDescription>
                       Your date of birth is used to enhance affirmation personalization.
                     </FormDescription>
