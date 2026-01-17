@@ -46,7 +46,6 @@ type AuthContextType = {
   login: (email: string, pass: string) => Promise<void>;
   signup: (username: string, email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
-  upgrade: () => Promise<void>;
   updateProfile: (data: Partial<AppUser>) => Promise<void>;
 };
 
@@ -140,14 +139,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut(auth);
   }, [auth]);
 
-  const upgrade = useCallback(async (): Promise<void> => {
-    if (!appUser || !firestore) throw new Error('User or Firestore not available');
-    const userRef = doc(firestore, 'users', appUser.uid);
-    const updatedData = { isUpgraded: true };
-    updateDocumentNonBlocking(userRef, updatedData);
-    setAppUser(prev => prev ? { ...prev, ...updatedData } : null);
-  }, [appUser, firestore]);
-
   const updateProfile = useCallback(
     async (data: Partial<AppUser>): Promise<void> => {
         if (!appUser || !firestore) throw new Error('User or Firestore not available');
@@ -165,7 +156,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     signup,
     logout,
-    upgrade,
     updateProfile,
   };
 

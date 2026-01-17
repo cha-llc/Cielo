@@ -3,10 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
 import { Check, Sparkles } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 
 const freeFeatures = [
   'Daily AI Affirmations',
@@ -26,30 +23,7 @@ const proFeatures = [
 ];
 
 export default function PricingPage() {
-  const { user, upgrade } = useAuth();
-  const { toast } = useToast();
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleUpgrade = async () => {
-    setIsLoading(true);
-    try {
-      await upgrade();
-      toast({
-        title: 'Upgrade Successful!',
-        description: 'You now have access to all Pro features.',
-      });
-      router.push('/home');
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Upgrade Failed',
-        description: 'Something went wrong. Please try again.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { user } = useAuth();
 
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8">
@@ -115,8 +89,8 @@ export default function PricingPage() {
                 You are a Pro Member
               </Button>
             ) : (
-              <Button className="w-full" onClick={handleUpgrade} disabled={isLoading}>
-                {isLoading ? 'Upgrading...' : 'Upgrade to Pro'}
+              <Button className="w-full" disabled>
+                Upgrade to Pro
               </Button>
             )}
           </CardFooter>
