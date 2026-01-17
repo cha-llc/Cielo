@@ -78,22 +78,31 @@ async function fetchUserProfile(
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { auth, firestore, isUserLoading, user: firebaseUser } = useFirebase();
   const [appUser, setAppUser] = useState<AppUser | null>(null);
-  const [isProfileLoading, setProfileLoading] = useState(true);
+  const [isProfileLoading, setProfileLoading] = useState(false);
 
   useEffect(() => {
     const syncUser = async () => {
+      if (firebaseUser && firestore) {
         setProfileLoading(true);
-        if (firebaseUser && firestore) {
-            const userProfile = await fetchUserProfile(firestore, firebaseUser);
-            setAppUser(userProfile);
-        } else {
-            setAppUser(null);
+        try {
+          const userProfile = await fetchUserProfile(firestore, firebaseUser);
+          setAppUser(userProfile);
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+          setAppUser(null);
+        } finally {
+          setProfileLoading(false);
         }
+      } else {
+        setAppUser(null);
         setProfileLoading(false);
-    }
-    syncUser();
+      }
+    };
 
-  }, [firebaseUser, firestore]);
+    if (!isUserLoading) {
+      syncUser();
+    }
+  }, [firebaseUser, firestore, isUserLoading]);
 
 
   const login = useCallback(
@@ -151,7 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = {
     isLoggedIn: !!appUser,
-    isLoading: isProfileLoading || isUserLoading,
+    isLoading: isUserLoading || isProfileLoading,
     user: appUser,
     login,
     signup,
