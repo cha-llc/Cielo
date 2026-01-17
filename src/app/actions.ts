@@ -6,6 +6,7 @@ import { generateGuidedMeditation } from '@/ai/flows/generate-guided-meditation'
 import { generateSoundscape } from '@/ai/flows/generate-soundscape';
 import { interpretDream } from '@/ai/flows/interpret-dream';
 import { advancedAnalyzeSentiment as advancedSentimentFlow } from '@/ai/flows/advanced-analyze-sentiment';
+import { generateSoundscapeIdeas } from '@/ai/flows/generate-soundscape-ideas';
 
 export async function getAffirmation(params: {
   zodiacSign: string | null;
@@ -88,6 +89,22 @@ export async function getSoundscape(topic: string): Promise<Soundscape> {
     console.error('Error generating soundscape:', error);
     return { title: "Error", script: (error as Error).message || "Could not generate soundscape.", audioDataUri: "" };
   }
+}
+
+export type SoundscapeIdea = {
+  title: string;
+  description: string;
+  imageHint: string;
+};
+
+export async function getSoundscapeIdeas(count: number): Promise<SoundscapeIdea[]> {
+    try {
+        const { ideas } = await generateSoundscapeIdeas({ count });
+        return ideas;
+    } catch (error) {
+        console.error('Error generating soundscape ideas:', error);
+        return [{ title: 'Error', description: 'Could not generate new ideas. Please try again.', imageHint: 'error' }];
+    }
 }
 
 export type DreamInterpretation = {
