@@ -2,18 +2,73 @@
 
 import { getAffirmation } from '@/app/actions';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { Sparkles, RefreshCw } from 'lucide-react';
+import {
+  RefreshCw,
+  PenSquare,
+  Headphones,
+  Music,
+  Moon,
+  ArrowRight,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState, useTransition } from 'react';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Badge } from '@/components/ui/badge';
+
+const quickLinks = [
+  {
+    href: '/journal',
+    title: 'Mood Journal',
+    description: 'Reflect on your day and gain new insights.',
+    icon: PenSquare,
+    pro: false,
+  },
+  {
+    href: '/meditations',
+    title: 'Meditate',
+    description: 'AI-guided sessions to find your inner peace.',
+    icon: Headphones,
+    pro: false,
+  },
+  {
+    href: '/soundscapes',
+    title: 'Soundscapes',
+    description: 'Transport your mind to a tranquil environment.',
+    icon: Music,
+    pro: false,
+  },
+  {
+    href: '/dream-journal',
+    title: 'Dream Journal',
+    description: 'Unlock the secrets of your subconscious.',
+    icon: Moon,
+    pro: true,
+  },
+];
 
 export default function HomePage() {
   const { user } = useAuth();
   const [affirmation, setAffirmation] = useState('');
   const [isLoading, startTransition] = useTransition();
   const { toast } = useToast();
+  const [greeting, setGreeting] = useState('Welcome');
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good morning');
+    else if (hour < 18) setGreeting('Good afternoon');
+    else setGreeting('Good evening');
+  }, []);
 
   const fetchAffirmation = useCallback(() => {
     startTransition(async () => {
@@ -36,60 +91,114 @@ export default function HomePage() {
     fetchAffirmation();
   }, [fetchAffirmation]);
 
+  const affirmationBg = PlaceHolderImages.find(
+    p => p.id === 'dashboard-affirmation-bg'
+  );
+
   return (
-    <div className="container mx-auto p-4 sm:p-6 md:p-8">
+    <div className="container mx-auto space-y-8 p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-start justify-between gap-4 border-b pb-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="font-headline text-3xl font-bold tracking-tight md:text-4xl">
-            Welcome, {user?.username}
+            {greeting}, {user?.username}
           </h1>
-          <p className="text-lg text-muted-foreground">Here is your daily affirmation to guide you.</p>
+          <p className="text-lg text-muted-foreground">
+            Here is your daily affirmation to guide you.
+          </p>
         </div>
-        <Button onClick={fetchAffirmation} disabled={isLoading} variant="outline">
-          <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+        <Button
+          onClick={fetchAffirmation}
+          disabled={isLoading}
+          variant="outline"
+        >
+          <RefreshCw
+            className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+          />
           New Affirmation
         </Button>
       </div>
 
-      <div className="mt-8 flex items-center justify-center">
-        <Card className="w-full max-w-2xl bg-gradient-to-br from-primary/20 to-card shadow-lg">
-          <CardContent className="p-8">
-            <div className="flex justify-center mb-4">
-              <Sparkles className="h-8 w-8 text-primary" />
+      <Card className="relative flex min-h-[300px] w-full items-center justify-center overflow-hidden rounded-xl border-none p-8 text-center shadow-lg">
+        {affirmationBg && (
+          <Image
+            src={affirmationBg.imageUrl}
+            alt="Affirmation background"
+            fill
+            className="object-cover"
+            data-ai-hint={affirmationBg.imageHint}
+            priority
+          />
+        )}
+        <div className="absolute inset-0 bg-black/60" />
+        <div className="relative z-10 mx-auto max-w-3xl text-white">
+          {isLoading && !affirmation ? (
+            <div className="flex h-32 items-center justify-center">
+              <p className="text-lg text-white/80">
+                Generating your affirmation...
+              </p>
             </div>
-            {isLoading && !affirmation ? (
-              <div className="flex h-32 items-center justify-center">
-                <p className="text-lg text-muted-foreground">Generating your affirmation...</p>
-              </div>
-            ) : (
-              <blockquote className="space-y-4 text-center">
-                <p className="font-headline text-3xl font-medium leading-tight text-foreground md:text-4xl">
-                  &ldquo;{affirmation}&rdquo;
-                </p>
-                <footer className="text-base text-accent">Your Daily Focus</footer>
-              </blockquote>
-            )}
-          </CardContent>
-        </Card>
+          ) : (
+            <blockquote className="space-y-4">
+              <p className="font-headline text-3xl font-medium leading-tight md:text-5xl">
+                &ldquo;{affirmation}&rdquo;
+              </p>
+              <footer className="text-base text-primary">
+                Your Daily Focus
+              </footer>
+            </blockquote>
+          )}
+        </div>
+      </Card>
+
+      <div>
+        <h2 className="font-headline text-2xl font-bold tracking-tight mb-4">
+          Explore
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {quickLinks.map(link => (
+            <Link href={link.href} key={link.href} className="flex">
+              <Card className="flex w-full flex-col transition-colors hover:border-primary/50 hover:bg-card/80">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <link.icon className="h-8 w-8 text-primary" />
+                    {link.pro && !user?.isUpgraded && (
+                      <Badge variant="secondary">Pro</Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col">
+                  <CardTitle className="text-lg font-semibold">
+                    {link.title}
+                  </CardTitle>
+                  <CardDescription className="mt-1 text-sm">
+                    {link.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {!user?.isUpgraded && (
-        <div className="mt-8">
-          <Card className="border-primary bg-primary/10">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-lg font-medium text-primary">Unlock Your Potential</CardTitle>
-              <Sparkles className="h-5 w-5 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="text-primary/80">
-                Personalize your affirmations based on your zodiac sign and birthdate.
+        <Card className="bg-gradient-to-r from-primary/10 to-card">
+          <CardHeader className="flex flex-col items-center justify-between gap-4 text-center md:flex-row md:text-left">
+            <div className="space-y-1">
+              <CardTitle className="text-lg">
+                Unlock Your Full Potential
+              </CardTitle>
+              <CardDescription>
+                Upgrade to Cielo Pro for personalized affirmations, dream
+                analysis, and more.
               </CardDescription>
-              <Button asChild className="mt-4">
-                <Link href="/pricing">Upgrade to Pro</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+            <Button asChild className="shrink-0">
+              <Link href="/pricing">
+                Upgrade Now <ArrowRight className="ml-2" />
+              </Link>
+            </Button>
+          </CardHeader>
+        </Card>
       )}
     </div>
   );

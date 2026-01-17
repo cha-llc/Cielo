@@ -41,6 +41,12 @@
       "description": "A cozy, crackling fireplace",
       "imageUrl": "https://images.unsplash.com/photo-1542382257-80ded54d73f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb3p5JTIwZmlyZXBsYWNlfGVufDB8fHx8MTc2ODc2NzcyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "cozy fireplace"
+    },
+    {
+      "id": "dashboard-affirmation-bg",
+      "description": "A beautiful galaxy background for the dashboard affirmation card",
+      "imageUrl": "https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxnYWxheHl8ZW58MHx8fHwxNzE2NDAxODUxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "galaxy space"
     }
   ]
 }
