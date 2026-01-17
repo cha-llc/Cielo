@@ -1,7 +1,7 @@
 'use client';
 
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Home, LogOut, PenSquare, Gem, UserCircle, Menu } from 'lucide-react';
+import { Home, PenSquare, Gem, UserCircle, Menu, Headphones, Music, Moon, History } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -23,11 +23,18 @@ import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { useState } from 'react';
 
 const navItems = [
-  { href: '/home', label: 'Home', icon: Home },
-  { href: '/journal', label: 'Journal', icon: PenSquare },
-  { href: '/pricing', label: 'Upgrade', icon: Gem },
-  { href: '/profile', label: 'Profile', icon: UserCircle },
+  { href: '/home', label: 'Home', icon: Home, pro: false },
+  { href: '/journal', label: 'Journal', icon: PenSquare, pro: false },
+  { href: '/meditations', label: 'Meditate', icon: Headphones, pro: false },
+  { href: '/soundscapes', label: 'Sounds', icon: Music, pro: false },
+  { href: '/dream-journal', label: 'Dreams', icon: Moon, pro: true },
+  { href: '/journal-history', label: 'History', icon: History, pro: true },
 ];
+
+const accountNavItems = [
+    { href: '/pricing', label: 'Upgrade', icon: Gem },
+    { href: '/profile', label: 'Profile', icon: UserCircle },
+]
 
 const NavLink = ({ href, label, icon: Icon, pathname, isMobile, closeSheet }: { href: string; label: string; icon: React.ElementType; pathname: string; isMobile: boolean; closeSheet?: () => void }) => {
   const isActive = pathname === href;
@@ -73,8 +80,8 @@ function DesktopNav({ pathname }: { pathname: string }) {
           <Logo />
           <span className="sr-only">Cielo</span>
         </Link>
-        {navItems.map((item) => (
-          <Link key={item.href} href={item.href} className={cn("flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8", pathname === item.href && "bg-accent text-accent-foreground")}>
+        {navItems.filter(item => !item.pro || user?.isUpgraded).map((item) => (
+          <Link key={item.href} href={item.href} className={cn("flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8", pathname.startsWith(item.href) && "bg-accent text-accent-foreground")}>
              <item.icon className="h-5 w-5" />
              <span className="sr-only">{item.label}</span>
           </Link>
@@ -106,6 +113,7 @@ function DesktopNav({ pathname }: { pathname: string }) {
 
 function MobileNav({ pathname }: { pathname: string }) {
     const [open, setOpen] = useState(false);
+    const { user } = useAuth();
   
     return (
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
@@ -122,7 +130,11 @@ function MobileNav({ pathname }: { pathname: string }) {
                             <Logo />
                             <span className="sr-only">Cielo</span>
                         </Link>
-                        {navItems.map((item) => (
+                        {navItems.filter(item => !item.pro || user?.isUpgraded).map((item) => (
+                            <NavLink key={item.href} {...item} pathname={pathname} isMobile={false} closeSheet={() => setOpen(false)} />
+                        ))}
+                        <DropdownMenuSeparator />
+                        {accountNavItems.map((item) => (
                             <NavLink key={item.href} {...item} pathname={pathname} isMobile={false} closeSheet={() => setOpen(false)} />
                         ))}
                     </nav>

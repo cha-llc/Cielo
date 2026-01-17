@@ -13,14 +13,14 @@ const freeFeatures = [
   'Mood Journal & Basic Sentiment',
   'Breathing Exercises',
   'Community Access',
+  'Guided Meditations',
+  'Soundscapes',
 ];
 const proFeatures = [
   ...freeFeatures,
   'Personalized Zodiac Affirmations',
   'Advanced Sentiment Analysis',
   'Journal History',
-  'Guided Meditations',
-  'Soundscapes',
   'AI Dream Journal',
   'Priority Support',
 ];
