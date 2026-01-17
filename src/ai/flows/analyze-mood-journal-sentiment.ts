@@ -15,6 +15,10 @@ const AnalyzeMoodJournalSentimentInputSchema = z.object({
   journalEntry: z
     .string()
     .describe('The mood journal entry to analyze for sentiment.'),
+  language: z
+    .string()
+    .optional()
+    .describe('The language for the analysis, e.g., "en" or "es".'),
 });
 
 export type AnalyzeMoodJournalSentimentInput = z.infer<
@@ -54,6 +58,10 @@ const prompt = ai.definePrompt({
   prompt: `You are an AI sentiment analysis expert. Analyze the following mood journal entry and determine its sentiment, sentiment score, and provide a detailed analysis.
 
 Journal Entry: {{{journalEntry}}}
+
+{{#if language}}
+Provide your analysis in the following language: {{{language}}}.
+{{/if}}
 
 Respond in JSON format:
 {

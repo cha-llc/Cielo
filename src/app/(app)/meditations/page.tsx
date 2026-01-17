@@ -22,6 +22,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
+import { useTranslation } from '@/hooks/use-translation';
 
 const meditations = [
   {
@@ -38,11 +39,12 @@ export default function MeditationsPage() {
   const [activeMeditation, setActiveMeditation] =
     useState<GuidedMeditation | null>(null);
   const { toast } = useToast();
+  const { language } = useTranslation();
 
   const handlePlay = async (topic: string) => {
     setIsLoading(topic);
     setActiveMeditation(null);
-    const result = await getGuidedMeditation(topic);
+    const result = await getGuidedMeditation(topic, language);
     setIsLoading(null);
 
     if (result?.title === 'Error') {

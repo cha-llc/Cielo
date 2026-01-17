@@ -15,6 +15,10 @@ const AdvancedAnalyzeSentimentInputSchema = z.object({
   journalEntry: z
     .string()
     .describe('The mood journal entry to analyze for sentiment.'),
+  language: z
+    .string()
+    .optional()
+    .describe('The language for the analysis, e.g., "en" or "es".'),
 });
 
 export type AdvancedAnalyzeSentimentInput = z.infer<
@@ -69,6 +73,10 @@ Provide an advanced analysis that includes:
 3.  A detailed analysis of the themes and underlying feelings.
 4.  A list of 2-3 key emotions identified (e.g., "Frustration", "Hopeful", "Anxious").
 5.  One piece of gentle, actionable advice or a reflective question to help the user navigate these feelings.
+
+{{#if language}}
+Provide the entire response in the following language: {{{language}}}.
+{{/if}}
 
 Respond in a structured JSON format.`,
 });

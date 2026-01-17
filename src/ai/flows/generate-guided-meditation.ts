@@ -17,6 +17,10 @@ const GenerateGuidedMeditationInputSchema = z.object({
   topic: z
     .string()
     .describe('The topic for the guided meditation, e.g., "Stress Relief".'),
+  language: z
+    .string()
+    .optional()
+    .describe('The language for the meditation script, e.g., "en" or "es".'),
 });
 export type GenerateGuidedMeditationInput = z.infer<
   typeof GenerateGuidedMeditationInputSchema
@@ -44,6 +48,7 @@ const scriptGenerationPrompt = ai.definePrompt({
   input: {
     schema: z.object({
       topic: z.string(),
+      language: z.string().optional(),
     }),
   },
   output: {
@@ -56,7 +61,11 @@ const scriptGenerationPrompt = ai.definePrompt({
         ),
     }),
   },
-  prompt: `You are a world-renowned meditation guide. Create a short, calming guided meditation script about '{{{topic}}}'.`,
+  prompt: `You are a world-renowned meditation guide. Create a short, calming guided meditation script about '{{{topic}}}'.
+  
+  {{#if language}}
+  Write the script and title in the following language: {{{language}}}.
+  {{/if}}`,
 });
 
 const generateGuidedMeditationFlow = ai.defineFlow(
@@ -65,8 +74,11 @@ const generateGuidedMeditationFlow = ai.defineFlow(
     inputSchema: GenerateGuidedMeditationInputSchema,
     outputSchema: GenerateGuidedMeditationOutputSchema,
   },
-  async ({topic}) => {
-    const {output: scriptOutput} = await scriptGenerationPrompt({topic});
+  async ({topic, language}) => {
+    const {output: scriptOutput} = await scriptGenerationPrompt({
+      topic,
+      language,
+    });
     if (!scriptOutput) {
       throw new Error('Failed to generate meditation script.');
     }

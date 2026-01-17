@@ -17,6 +17,12 @@ const GenerateSoundscapeInputSchema = z.object({
   topic: z
     .string()
     .describe('The topic for the soundscape, e.g., "Rainforest".'),
+  language: z
+    .string()
+    .optional()
+    .describe(
+      'The language for the soundscape title and description, e.g., "en" or "es".'
+    ),
 });
 export type GenerateSoundscapeInput = z.infer<
   typeof GenerateSoundscapeInputSchema
@@ -44,6 +50,7 @@ const scriptGenerationPrompt = ai.definePrompt({
   input: {
     schema: z.object({
       topic: z.string(),
+      language: z.string().optional(),
     }),
   },
   output: {
@@ -56,7 +63,11 @@ const scriptGenerationPrompt = ai.definePrompt({
         ),
     }),
   },
-  prompt: `You are an expert sound designer. Create a short, immersive audio script describing the ambient sounds of a '{{{topic}}}'. Focus on creating a tranquil and relaxing atmosphere. The script should only describe sounds, as if setting a scene. For example: 'Gentle waves lapping against the shore. A distant seagull calls. A soft sea breeze whispers.'`,
+  prompt: `You are an expert sound designer. Create a short, immersive audio script describing the ambient sounds of a '{{{topic}}}'. Focus on creating a tranquil and relaxing atmosphere. The script should only describe sounds, as if setting a scene. For example: 'Gentle waves lapping against the shore. A distant seagull calls. A soft sea breeze whispers.'
+
+  {{#if language}}
+  Write the title and script in the following language: {{{language}}}.
+  {{/if}}`,
 });
 
 const generateSoundscapeFlow = ai.defineFlow(
@@ -65,8 +76,11 @@ const generateSoundscapeFlow = ai.defineFlow(
     inputSchema: GenerateSoundscapeInputSchema,
     outputSchema: GenerateSoundscapeOutputSchema,
   },
-  async ({topic}) => {
-    const {output: scriptOutput} = await scriptGenerationPrompt({topic});
+  async ({topic, language}) => {
+    const {output: scriptOutput} = await scriptGenerationPrompt({
+      topic,
+      language,
+    });
     if (!scriptOutput) {
       throw new Error('Failed to generate soundscape script.');
     }

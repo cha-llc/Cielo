@@ -8,6 +8,7 @@ import { getDreamInterpretation, type DreamInterpretation } from '@/app/actions'
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { useTranslation } from '@/hooks/use-translation';
 
 
 export default function DreamJournalPage() {
@@ -15,6 +16,7 @@ export default function DreamJournalPage() {
   const [interpretation, setInterpretation] = useState<DreamInterpretation>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { language } = useTranslation();
 
   const handleInterpret = async () => {
     if (dream.trim().length < 20) {
@@ -27,7 +29,7 @@ export default function DreamJournalPage() {
     }
     setIsLoading(true);
     setInterpretation(null);
-    const result = await getDreamInterpretation(dream);
+    const result = await getDreamInterpretation(dream, language);
     if (result?.sentiment === 'Error') {
         toast({
             variant: 'destructive',

@@ -13,6 +13,10 @@ import {z} from 'genkit';
 
 const GenerateWelcomeEmailInputSchema = z.object({
   username: z.string().describe('The name of the new user.'),
+  language: z
+    .string()
+    .optional()
+    .describe('The language for the email, e.g., "en" or "es".'),
 });
 export type GenerateWelcomeEmailInput = z.infer<
   typeof GenerateWelcomeEmailInputSchema
@@ -51,6 +55,10 @@ The email should:
 4.  Highlight 2-3 key features like the AI-powered Journal, Guided Meditations, and Soundscapes.
 5.  Encourage them to explore the app.
 6.  Be formatted in simple HTML for an email client. Use <p>, <strong>, and <a> tags where appropriate, but don't include <html> or <body> tags.
+
+{{#if language}}
+Write the email (subject and body) in the following language: {{{language}}}.
+{{/if}}
 
 Generate the response in a structured JSON format.`,
 });

@@ -24,6 +24,7 @@ import { useCallback, useEffect, useState, useTransition } from 'react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from '@/hooks/use-translation';
 
 const quickLinks = [
   {
@@ -62,6 +63,7 @@ export default function HomePage() {
   const [isLoading, startTransition] = useTransition();
   const { toast } = useToast();
   const [greeting, setGreeting] = useState('Welcome');
+  const { language } = useTranslation();
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -74,7 +76,7 @@ export default function HomePage() {
     startTransition(async () => {
       const zodiacSign = user?.isUpgraded ? user.zodiacSign : null;
       const birthdate = user?.isUpgraded ? user.birthdate : null;
-      const result = await getAffirmation({ zodiacSign, birthdate });
+      const result = await getAffirmation({ zodiacSign, birthdate, language });
       if (result.startsWith('Could not generate')) {
         toast({
           variant: 'destructive',
@@ -85,7 +87,7 @@ export default function HomePage() {
         setAffirmation(result);
       }
     });
-  }, [user, toast]);
+  }, [user, toast, language]);
 
   useEffect(() => {
     fetchAffirmation();

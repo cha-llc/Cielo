@@ -27,6 +27,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function SoundscapesPage() {
   const [soundscapes, setSoundscapes] = useState<SoundscapeIdea[]>([]);
@@ -36,10 +37,11 @@ export default function SoundscapesPage() {
     null
   );
   const { toast } = useToast();
+  const { language } = useTranslation();
 
   const fetchIdeas = useCallback(async () => {
     setIsPageLoading(true);
-    const ideas = await getSoundscapeIdeas(6);
+    const ideas = await getSoundscapeIdeas(6, language);
     if (ideas.length > 0 && ideas[0].title === 'Error') {
       toast({
         variant: 'destructive',
@@ -51,7 +53,7 @@ export default function SoundscapesPage() {
       setSoundscapes(ideas);
     }
     setIsPageLoading(false);
-  }, [toast]);
+  }, [toast, language]);
 
   useEffect(() => {
     fetchIdeas();
@@ -60,7 +62,7 @@ export default function SoundscapesPage() {
   const handleListen = async (topic: string) => {
     setIsGenerating(topic);
     setActiveSoundscape(null);
-    const result = await getSoundscape(topic);
+    const result = await getSoundscape(topic, language);
     setIsGenerating(null);
 
     if (result?.title === 'Error') {

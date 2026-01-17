@@ -11,12 +11,14 @@ import { generateSoundscapeIdeas } from '@/ai/flows/generate-soundscape-ideas';
 export async function getAffirmation(params: {
   zodiacSign: string | null;
   birthdate: string | null;
+  language: string;
 }) {
   try {
-    const { zodiacSign, birthdate } = params;
+    const { zodiacSign, birthdate, language } = params;
     const result = await generateDailyAffirmation({
       zodiacSign: zodiacSign ?? undefined,
       birthdate: birthdate ?? undefined,
+      language: language,
     });
     return result.affirmation;
   } catch (error) {
@@ -33,12 +35,12 @@ export type SentimentAnalysis = {
   actionableAdvice?: string;
 } | null;
 
-export async function analyzeSentiment(journalEntry: string): Promise<SentimentAnalysis> {
+export async function analyzeSentiment(journalEntry: string, language: string): Promise<SentimentAnalysis> {
   if (!journalEntry.trim()) {
     return null;
   }
   try {
-    const result = await analyzeMoodJournalSentiment({ journalEntry });
+    const result = await analyzeMoodJournalSentiment({ journalEntry, language });
     return result;
   } catch (error) {
     console.error('Error analyzing sentiment:', error);
@@ -46,12 +48,12 @@ export async function analyzeSentiment(journalEntry: string): Promise<SentimentA
   }
 }
 
-export async function advancedAnalyzeSentiment(journalEntry: string): Promise<SentimentAnalysis> {
+export async function advancedAnalyzeSentiment(journalEntry: string, language: string): Promise<SentimentAnalysis> {
   if (!journalEntry.trim()) {
     return null;
   }
   try {
-    const result = await advancedSentimentFlow({ journalEntry });
+    const result = await advancedSentimentFlow({ journalEntry, language });
     return result;
   } catch (error) {
     console.error('Error analyzing advanced sentiment:', error);
@@ -65,9 +67,9 @@ export type GuidedMeditation = {
   audioDataUri: string;
 } | null;
 
-export async function getGuidedMeditation(topic: string): Promise<GuidedMeditation> {
+export async function getGuidedMeditation(topic: string, language: string): Promise<GuidedMeditation> {
   try {
-    const result = await generateGuidedMeditation({ topic });
+    const result = await generateGuidedMeditation({ topic, language });
     return result;
   } catch (error) {
     console.error('Error generating guided meditation:', error);
@@ -81,9 +83,9 @@ export type Soundscape = {
   audioDataUri: string;
 } | null;
 
-export async function getSoundscape(topic: string): Promise<Soundscape> {
+export async function getSoundscape(topic: string, language: string): Promise<Soundscape> {
   try {
-    const result = await generateSoundscape({ topic });
+    const result = await generateSoundscape({ topic, language });
     return result;
   } catch (error) {
     console.error('Error generating soundscape:', error);
@@ -97,9 +99,9 @@ export type SoundscapeIdea = {
   imageHint: string;
 };
 
-export async function getSoundscapeIdeas(count: number): Promise<SoundscapeIdea[]> {
+export async function getSoundscapeIdeas(count: number, language: string): Promise<SoundscapeIdea[]> {
     try {
-        const { ideas } = await generateSoundscapeIdeas({ count });
+        const { ideas } = await generateSoundscapeIdeas({ count, language });
         return ideas;
     } catch (error) {
         console.error('Error generating soundscape ideas:', error);
@@ -116,9 +118,9 @@ export type DreamInterpretation = {
     }[];
 } | null;
 
-export async function getDreamInterpretation(dreamDescription: string): Promise<DreamInterpretation> {
+export async function getDreamInterpretation(dreamDescription: string, language: string): Promise<DreamInterpretation> {
     try {
-        const result = await interpretDream({ dreamDescription });
+        const result = await interpretDream({ dreamDescription, language });
         return result;
     } catch (error) {
         console.error('Error interpreting dream:', error);

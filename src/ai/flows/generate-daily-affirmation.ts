@@ -22,6 +22,10 @@ const GenerateDailyAffirmationInputSchema = z.object({
     .describe(
       'Optional birthdate for personalized affirmation (ISO 8601 format).'
     ),
+  language: z
+    .string()
+    .optional()
+    .describe('The language for the affirmation, e.g., "en" or "es".'),
 });
 export type GenerateDailyAffirmationInput = z.infer<
   typeof GenerateDailyAffirmationInputSchema
@@ -44,13 +48,16 @@ const prompt = ai.definePrompt({
   name: 'generateDailyAffirmationPrompt',
   input: {schema: GenerateDailyAffirmationInputSchema},
   output: {schema: GenerateDailyAffirmationOutputSchema},
-  prompt: `You are an AI that generates daily affirmations.  The affirmation should be motivational and disciplined.
+  prompt: `You are an AI that generates daily affirmations. The affirmation should be motivational and disciplined.
 
   {{#if zodiacSign}}
   Personalize the affirmation for the zodiac sign: {{zodiacSign}}.
   {{/if}}
   {{#if birthdate}}
   Further personalize it considering the user's birthdate: {{birthdate}}.
+  {{/if}}
+  {{#if language}}
+  Respond in the following language: {{language}}.
   {{/if}}
   `,
 });

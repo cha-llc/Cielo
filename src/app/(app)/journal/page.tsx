@@ -14,6 +14,7 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from '@/hooks/use-translation';
 
 const formSchema = z.object({
   journalEntry: z.string().min(10, {
@@ -26,6 +27,7 @@ export default function JournalPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { language } = useTranslation();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,7 +39,7 @@ export default function JournalPage() {
     setAnalysis(null);
 
     const analysisFn = user?.isUpgraded ? advancedAnalyzeSentiment : analyzeSentiment;
-    const result = await analysisFn(values.journalEntry);
+    const result = await analysisFn(values.journalEntry, language);
 
     if (result?.sentiment === 'Error') {
       toast({
