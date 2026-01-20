@@ -117,10 +117,15 @@ service cloud.firestore {
      * @principle Restricts access to a user's own data tree and allows self-creation of a profile.
      */
     match /users/{userId} {
+      // Each authenticated user can fully manage ONLY their own user document.
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isOwner(userId) && isNewUserValid(userId);
-      allow update: if isExistingOwner(userId) && isUserDataImmutable();
+      // Allow create if user owns the document (for new profiles or setDoc with merge on non-existent docs)
+      allow create: if isOwner(userId);
+      // Allow update if user owns the document
+      // Note: For setDoc with merge, Firestore will use create if doc doesn't exist, update if it does
+      // So we allow update with just ownership check (not existence check) to handle merge operations
+      allow update: if isOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 

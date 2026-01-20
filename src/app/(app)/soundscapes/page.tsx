@@ -81,10 +81,10 @@ export default function SoundscapesPage() {
       <div className="container mx-auto p-4 sm:p-6 md:p-8">
         <div className="flex flex-col items-start justify-between gap-4 border-b pb-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="font-headline text-3xl font-bold tracking-tight md:text-4xl">
+            <h1 className="font-headline text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
               Soundscapes
             </h1>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-sm text-muted-foreground sm:text-base md:text-lg mt-1">
               Transport your mind to a tranquil environment.
             </p>
           </div>

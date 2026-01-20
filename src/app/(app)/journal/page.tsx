@@ -14,6 +14,7 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/hooks/use-translation';
 
 const formSchema = z.object({
@@ -72,11 +73,11 @@ export default function JournalPage() {
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8">
       <div className="border-b pb-4">
-        <h1 className="font-headline text-3xl font-bold tracking-tight md:text-4xl">Mood Journal</h1>
-        <p className="text-lg text-muted-foreground">Reflect on your day and gain new insights.</p>
+        <h1 className="font-headline text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">Mood Journal</h1>
+        <p className="text-sm text-muted-foreground sm:text-base md:text-lg mt-1">Reflect on your day and gain new insights.</p>
       </div>
 
-      <div className="mt-8 grid gap-8 md:grid-cols-2">
+      <div className="mt-6 grid gap-6 sm:mt-8 sm:gap-8 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>New Entry</CardTitle>
@@ -138,11 +139,11 @@ export default function JournalPage() {
             ) : analysis ? (
               <div className="space-y-4">
                 <div>
-                  <FormLabel>Overall Sentiment</FormLabel>
+                  <Label>Overall Sentiment</Label>
                   <p className="font-headline text-2xl font-bold capitalize">{analysis.sentiment}</p>
                 </div>
                 <div>
-                  <FormLabel>Sentiment Score</FormLabel>
+                  <Label>Sentiment Score</Label>
                   <Progress value={sentimentScore} className="h-2" />
                   <div className="mt-1 flex justify-between text-xs text-muted-foreground">
                     <span>Negative</span>
@@ -151,12 +152,12 @@ export default function JournalPage() {
                   </div>
                 </div>
                 <div>
-                  <FormLabel>Deeper Analysis</FormLabel>
+                  <Label>Deeper Analysis</Label>
                   <p className="text-sm text-foreground">{analysis.analysis}</p>
                 </div>
                 {analysis.keyEmotions && analysis.keyEmotions.length > 0 && (
                     <div>
-                        <FormLabel>Key Emotions</FormLabel>
+                        <Label>Key Emotions</Label>
                         <div className="flex flex-wrap gap-2 mt-2">
                             {analysis.keyEmotions.map(emotion => (
                                 <Badge key={emotion} variant="secondary">{emotion}</Badge>
@@ -166,7 +167,7 @@ export default function JournalPage() {
                 )}
                 {analysis.actionableAdvice && (
                     <div>
-                        <FormLabel>Actionable Advice</FormLabel>
+                        <Label>Actionable Advice</Label>
                         <p className="text-sm text-foreground italic border-l-2 border-primary pl-3 mt-2">{analysis.actionableAdvice}</p>
                     </div>
                 )}

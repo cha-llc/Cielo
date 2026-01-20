@@ -3,7 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 const freeFeatures = [
   'Daily AI Affirmations',
@@ -23,18 +25,51 @@ const proFeatures = [
 ];
 
 export default function PricingPage() {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
+  const { toast } = useToast();
+  const [isUpgrading, setIsUpgrading] = useState(false);
+
+  const handleUpgrade = async () => {
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Please log in to upgrade your plan.',
+      });
+      return;
+    }
+
+    setIsUpgrading(true);
+    try {
+      // Update user profile to set isUpgraded to true
+      await updateProfile({ isUpgraded: true });
+      
+      toast({
+        title: 'Upgrade Successful!',
+        description: 'Welcome to Cielo Pro! You now have access to all premium features.',
+      });
+    } catch (error) {
+      console.error('Upgrade error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Upgrade Failed',
+        description: error instanceof Error ? error.message : 'Failed to upgrade. Please try again.',
+      });
+    } finally {
+      setIsUpgrading(false);
+    }
+  };
 
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8">
       <div className="mx-auto max-w-2xl text-center">
-        <h1 className="font-headline text-3xl font-bold tracking-tight md:text-4xl">Choose Your Path</h1>
-        <p className="mt-4 text-lg text-muted-foreground">
+        <h1 className="font-headline text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">Choose Your Path</h1>
+        <p className="mt-2 text-sm text-muted-foreground sm:mt-4 sm:text-base md:text-lg">
           Unlock a more personalized experience and deepen your journey of self-discovery.
         </p>
       </div>
 
-      <div className="mt-12 grid max-w-4xl mx-auto gap-8 md:grid-cols-2">
+      <div className="mt-8 grid max-w-4xl mx-auto gap-6 sm:mt-12 sm:gap-8 md:grid-cols-2">
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="font-headline text-2xl">Standard</CardTitle>
@@ -42,7 +77,7 @@ export default function PricingPage() {
           </CardHeader>
           <CardContent className="flex-1 space-y-4">
             <p>
-              <span className="font-headline text-4xl font-bold">$0</span>
+              <span className="font-headline text-3xl font-bold sm:text-4xl">$0</span>
               <span className="text-muted-foreground">/month</span>
             </p>
             <ul className="space-y-2 text-sm">
@@ -71,7 +106,7 @@ export default function PricingPage() {
           </CardHeader>
           <CardContent className="flex-1 space-y-4">
             <p>
-              <span className="font-headline text-4xl font-bold">$9</span>
+              <span className="font-headline text-3xl font-bold sm:text-4xl">$9</span>
               <span className="text-muted-foreground">/month</span>
             </p>
             <ul className="space-y-2 text-sm">
@@ -89,8 +124,22 @@ export default function PricingPage() {
                 You are a Pro Member
               </Button>
             ) : (
-              <Button className="w-full" disabled>
-                Upgrade to Pro
+              <Button 
+                className="w-full" 
+                onClick={handleUpgrade}
+                disabled={isUpgrading}
+              >
+                {isUpgrading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Upgrading...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Upgrade to Pro
+                  </>
+                )}
               </Button>
             )}
           </CardFooter>

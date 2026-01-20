@@ -62,15 +62,15 @@ export default function MeditationsPage() {
     <>
       <div className="container mx-auto p-4 sm:p-6 md:p-8">
         <div className="border-b pb-4">
-          <h1 className="font-headline text-3xl font-bold tracking-tight md:text-4xl">
+          <h1 className="font-headline text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
             AI-Powered Guided Meditations
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-sm text-muted-foreground sm:text-base md:text-lg mt-1">
             Find your inner peace and calm your mind with unique, AI-generated
             sessions.
           </p>
         </div>
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:mt-8 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {meditations.map(med => {
             const imageUrl = PlaceHolderImages.find(
               p => p.id === med.imageId

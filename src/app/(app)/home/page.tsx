@@ -98,13 +98,13 @@ export default function HomePage() {
   );
 
   return (
-    <div className="container mx-auto space-y-8 p-4 sm:p-6 md:p-8">
+    <div className="container mx-auto space-y-6 p-4 sm:space-y-8 sm:p-6 md:p-8">
       <div className="flex flex-col items-start justify-between gap-4 border-b pb-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="font-headline text-3xl font-bold tracking-tight md:text-4xl">
+        <div className="min-w-0 flex-1">
+          <h1 className="font-headline text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl break-words">
             {greeting}, {user?.username}
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-sm text-muted-foreground sm:text-base md:text-lg mt-1">
             Here is your daily affirmation to guide you.
           </p>
         </div>
@@ -112,15 +112,17 @@ export default function HomePage() {
           onClick={fetchAffirmation}
           disabled={isLoading}
           variant="outline"
+          className="w-full sm:w-auto shrink-0"
         >
           <RefreshCw
             className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
           />
-          New Affirmation
+          <span className="hidden sm:inline">New Affirmation</span>
+          <span className="sm:hidden">New</span>
         </Button>
       </div>
 
-      <Card className="relative flex min-h-[300px] w-full items-center justify-center overflow-hidden rounded-xl border-none p-8 text-center shadow-lg">
+      <Card className="relative flex min-h-[250px] w-full items-center justify-center overflow-hidden rounded-xl border-none p-4 text-center shadow-lg sm:min-h-[300px] sm:p-8">
         {affirmationBg && (
           <Image
             src={affirmationBg.imageUrl}
@@ -132,19 +134,19 @@ export default function HomePage() {
           />
         )}
         <div className="absolute inset-0 bg-black/60" />
-        <div className="relative z-10 mx-auto max-w-3xl text-white">
+        <div className="relative z-10 mx-auto max-w-3xl text-white px-2 sm:px-4">
           {isLoading && !affirmation ? (
             <div className="flex h-32 items-center justify-center">
-              <p className="text-lg text-white/80">
+              <p className="text-sm text-white/80 sm:text-base md:text-lg">
                 Generating your affirmation...
               </p>
             </div>
           ) : (
-            <blockquote className="space-y-4">
-              <p className="font-headline text-3xl font-medium leading-tight md:text-5xl">
+            <blockquote className="space-y-2 sm:space-y-4">
+              <p className="font-headline text-xl font-medium leading-tight sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl break-words">
                 &ldquo;{affirmation}&rdquo;
               </p>
-              <footer className="text-base text-primary">
+              <footer className="text-xs text-primary sm:text-sm md:text-base">
                 Your Daily Focus
               </footer>
             </blockquote>
@@ -153,10 +155,10 @@ export default function HomePage() {
       </Card>
 
       <div>
-        <h2 className="font-headline text-2xl font-bold tracking-tight mb-4">
+        <h2 className="font-headline text-xl font-bold tracking-tight mb-4 sm:text-2xl">
           Explore
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {quickLinks.map(link => (
             <Link href={link.href} key={link.href} className="flex">
               <Card className="flex w-full flex-col transition-colors hover:border-primary/50 hover:bg-card/80">

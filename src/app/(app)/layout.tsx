@@ -38,9 +38,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const canAccess = !isProRoute || (isProRoute && user?.isUpgraded);
 
   return (
-    <div className="relative flex min-h-screen w-full">
+    <div className="relative flex min-h-screen w-full flex-col md:flex-row">
       <MainNav />
-      <main className="w-full flex-1 md:pl-16">
+      <main className="w-full flex-1 pt-14 md:pt-0 md:pl-16">
         {canAccess ? (
           children
         ) : (

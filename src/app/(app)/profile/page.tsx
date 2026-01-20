@@ -116,10 +116,10 @@ export default function ProfilePage() {
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8">
       <div className="border-b pb-4">
-        <h1 className="font-headline text-3xl font-bold tracking-tight md:text-4xl">
+        <h1 className="font-headline text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
           {t('profile_title')}
         </h1>
-        <p className="text-lg text-muted-foreground">
+        <p className="text-sm text-muted-foreground sm:text-base md:text-lg mt-1">
           {t('profile_description')}
         </p>
       </div>

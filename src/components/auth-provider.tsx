@@ -23,7 +23,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { useFirebase }from '@/firebase/provider';
-import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
 // This is the shape of the user profile data stored in Firestore
@@ -79,7 +79,15 @@ async function fetchUserProfile(
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { auth, firestore, isUserLoading, user: firebaseUser } = useFirebase();
-  const [appUser, setAppUser] = useState<AppUser | null>(null);
+  const [appUser, setAppUser] = useState<AppUser | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const stored = window.localStorage.getItem('cielo:user');
+      return stored ? (JSON.parse(stored) as AppUser) : null;
+    } catch {
+      return null;
+    }
+  });
   const [isProfileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
@@ -88,7 +96,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfileLoading(true);
         try {
           const userProfile = await fetchUserProfile(firestore, firebaseUser);
-          setAppUser(userProfile);
+
+          if (userProfile) {
+            setAppUser(userProfile);
+          } else {
+            // Fallback: build a minimal profile from the Firebase auth user
+            const fallbackUser: AppUser = {
+              uid: firebaseUser.uid,
+              username:
+                firebaseUser.displayName ||
+                firebaseUser.email?.split('@')[0] ||
+                'User',
+              email: firebaseUser.email || '',
+              isUpgraded: false,
+              zodiacSign: null,
+              birthdate: null,
+            };
+            setAppUser(fallbackUser);
+          }
         } catch (error) {
           console.error("Error fetching user profile:", error);
           setAppUser(null);
@@ -105,6 +130,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       syncUser();
     }
   }, [firebaseUser, firestore, isUserLoading]);
+
+  // Keep a copy of the app user in localStorage for reuse across the app
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (appUser) {
+      window.localStorage.setItem('cielo:user', JSON.stringify(appUser));
+    } else {
+      window.localStorage.removeItem('cielo:user');
+    }
+  }, [appUser]);
 
 
   const login = useCallback(
@@ -154,7 +189,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (data: Partial<AppUser>): Promise<void> => {
         if (!appUser || !firestore) throw new Error('User or Firestore not available');
         const userRef = doc(firestore, 'users', appUser.uid);
-        updateDocumentNonBlocking(userRef, data);
+        // Use blocking update to ensure the operation completes before returning
+        await setDoc(userRef, data, { merge: true });
         setAppUser(prev => prev ? { ...prev, ...data } : null);
     },
     [appUser, firestore]
@@ -169,8 +205,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const value = {
-    isLoggedIn: !!appUser,
-    isLoading: isUserLoading || isProfileLoading,
+    // Use firebaseUser for auth check, not appUser (profile data)
+    // This ensures login works even if profile fetch is slow or fails
+    isLoggedIn: !!firebaseUser,
+    isLoading: isUserLoading || (!!firebaseUser && isProfileLoading),
     user: appUser,
     login,
     signup,
