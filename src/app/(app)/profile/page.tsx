@@ -94,10 +94,28 @@ export default function ProfilePage() {
         description: t('profile_update_success_description'),
       });
     } catch (error) {
+      console.error('Profile update error:', error);
+      
+      // Extract detailed error information
+      let errorMessage = 'Failed to update profile.';
+      let errorDetails = '';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        // Check if it's a Firebase error
+        if (error.name === 'FirebaseError' || error.message.includes('permission') || error.message.includes('Permission')) {
+          errorDetails = `Permission Error: ${error.message}\n\nPlease ensure:\n1. You are logged in\n2. Firestore rules allow updates to your user document\n3. Your user document exists in Firestore`;
+        } else {
+          errorDetails = error.message;
+        }
+      }
+      
       toast({
         variant: 'destructive',
         title: t('profile_update_fail_title'),
-        description: (error as Error).message,
+        description: errorDetails || errorMessage,
+        duration: 8000,
       });
     } finally {
       setIsLoading(false);

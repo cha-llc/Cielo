@@ -14,18 +14,37 @@ export function FirebaseErrorListener() {
 
   useEffect(() => {
     const handleError = (error: FirestorePermissionError) => {
-      // Show a user-friendly message in the UI
+      const { request } = error;
+      
+      // Build detailed error message
+      const operation = request.method || 'unknown';
+      const path = request.path || 'unknown path';
+      const userEmail = request.auth?.token?.email || 'Not logged in';
+      const userId = request.auth?.uid || 'No user ID';
+      const resourceData = request.resource?.data ? JSON.stringify(request.resource.data, null, 2) : 'No data';
+      
+      // Detailed description for toast
+      const detailedDescription = `Operation: ${operation.toUpperCase()}\nPath: ${path}\nUser: ${userEmail} (${userId})\nData: ${resourceData}`;
+      
+      // Show detailed error in toast
       toast({
         variant: 'destructive',
-        title: 'Permission denied',
-        description:
-          'You are not allowed to perform this action. Please check your Firestore rules or contact support.',
+        title: 'Firestore Permission Error',
+        description: detailedDescription,
+        duration: 10000, // Show for 10 seconds
       });
 
       // Also log full error in console for developers
-      // (includes the detailed rules request JSON)
-      // eslint-disable-next-line no-console
-      console.error(error);
+      console.error('Firestore Permission Error Details:', {
+        operation,
+        path,
+        user: {
+          uid: userId,
+          email: userEmail,
+        },
+        resourceData: request.resource?.data,
+        fullRequest: request,
+      });
     };
 
     errorEmitter.on('permission-error', handleError);
