@@ -64,13 +64,14 @@ async function fetchUserProfile(
   if (userSnap.exists()) {
     const data = userSnap.data() as UserProfile;
     // The user object we expose in the context is slightly different
+    // Always use Firebase auth email as source of truth if Firestore email is missing
     return {
-      uid: data.uid,
-      username: data.username,
-      email: data.email,
-      isUpgraded: data.isUpgraded,
-      zodiacSign: data.zodiacSign,
-      birthdate: data.birthdate,
+      uid: data.uid || user.uid,
+      username: data.username || user.displayName || user.email?.split('@')[0] || 'User',
+      email: data.email || user.email || '', // Use Firebase auth email if Firestore email is missing
+      isUpgraded: data.isUpgraded ?? false,
+      zodiacSign: data.zodiacSign ?? null,
+      birthdate: data.birthdate ?? null,
     };
   }
   return null;
@@ -82,7 +83,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof window === 'undefined') return null;
     try {
       const stored = window.localStorage.getItem('cielo:user');
-      return stored ? (JSON.parse(stored) as AppUser) : null;
+      if (stored) {
+        const parsed = JSON.parse(stored) as AppUser;
+        // Validate that essential fields exist
+        if (parsed && parsed.uid && (parsed.email || parsed.username)) {
+          return parsed;
+        }
+      }
+      return null;
     } catch {
       return null;
     }
@@ -134,11 +142,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (appUser) {
-      window.localStorage.setItem('cielo:user', JSON.stringify(appUser));
+      // Ensure all required fields are present before storing
+      const userToStore: AppUser = {
+        uid: appUser.uid,
+        username: appUser.username || 'User',
+        email: appUser.email || firebaseUser?.email || '',
+        isUpgraded: appUser.isUpgraded ?? false,
+        zodiacSign: appUser.zodiacSign ?? null,
+        birthdate: appUser.birthdate ?? null,
+      };
+      try {
+        window.localStorage.setItem('cielo:user', JSON.stringify(userToStore));
+      } catch (error) {
+        console.error('Failed to save user to localStorage:', error);
+      }
     } else {
       window.localStorage.removeItem('cielo:user');
     }
-  }, [appUser]);
+  }, [appUser, firebaseUser]);
 
   const login = useCallback(
     async (email: string, pass: string): Promise<void> => {
