@@ -187,11 +187,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateProfile = useCallback(
     async (data: Partial<AppUser>): Promise<void> => {
-        if (!appUser || !firestore) throw new Error('User or Firestore not available');
+        if (!appUser || !firestore) {
+          throw new Error('User or Firestore not available. Please ensure you are logged in.');
+        }
         const userRef = doc(firestore, 'users', appUser.uid);
-        // Use blocking update to ensure the operation completes before returning
-        await setDoc(userRef, data, { merge: true });
-        setAppUser(prev => prev ? { ...prev, ...data } : null);
+        try {
+          // Use blocking update to ensure the operation completes before returning
+          await setDoc(userRef, data, { merge: true });
+          setAppUser(prev => prev ? { ...prev, ...data } : null);
+        } catch (error) {
+          // Re-throw with more context
+          if (error instanceof Error) {
+            if (error.message.includes('permission') || error.message.includes('Permission')) {
+              throw new Error(`Permission denied: Cannot update profile. User ID: ${appUser.uid}, Path: users/${appUser.uid}. Please check Firestore security rules.`);
+            }
+            throw error;
+          }
+          throw new Error('Failed to update profile. Please try again.');
+        }
     },
     [appUser, firestore]
   );
