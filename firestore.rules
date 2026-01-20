@@ -73,19 +73,28 @@ service cloud.firestore {
 
     /**
      * Validates the data for a new user document during creation.
-     * Ensures the document ID in the path is consistent with the `id` field in the data.
+     * Ensures the document ID in the path is consistent with the `uid` field in the data.
      * @param userId The user's UID from the document path.
      */
     function isNewUserValid(userId) {
-      return request.resource.data.id == userId;
+      let data = request.resource.data;
+      return data.uid == userId &&
+             data.username is string &&
+             data.email is string &&
+             data.isUpgraded == false &&
+             data.createdAt == request.time;
     }
 
     /**
-     * Validates that the owner ID of a user's document cannot be changed after creation.
-     * Prevents re-assigning a user profile to another user.
+     * Validates that the owner ID and other core fields of a user's document cannot be changed after creation.
+     * Prevents re-assigning a user profile to another user or altering their email.
      */
     function isUserDataImmutable() {
-      return request.resource.data.id == resource.data.id;
+      let before = resource.data;
+      let after = request.resource.data;
+      return after.uid == before.uid &&
+             after.email == before.email &&
+             after.createdAt == before.createdAt;
     }
 
     /**
@@ -102,7 +111,7 @@ service cloud.firestore {
      * Prevents a user's private data from being moved or reassigned to another user.
      */
     function isSubcollectionDataImmutable() {
-      return request.resource.data.userId == resource.data.id;
+      return request.resource.data.userId == resource.data.userId;
     }
 
     // --------------------------------------------------------------------------------
@@ -112,20 +121,16 @@ service cloud.firestore {
     /**
      * @description Controls access to user profile documents.
      * @path /users/{userId}
-     * @allow (create) An authenticated user can create their own user document.
+     * @allow (create) An authenticated user can create their own user document if the data is valid.
+     * @allow (update) A user can update their own document, but cannot change immutable fields.
      * @deny (list) No user can list all user documents in the collection.
      * @principle Restricts access to a user's own data tree and allows self-creation of a profile.
      */
     match /users/{userId} {
-      // Each authenticated user can fully manage ONLY their own user document.
       allow get: if isOwner(userId);
       allow list: if false;
-      // Allow create if user owns the document (for new profiles or setDoc with merge on non-existent docs)
-      allow create: if isOwner(userId);
-      // Allow update if user owns the document
-      // Note: For setDoc with merge, Firestore will use create if doc doesn't exist, update if it does
-      // So we allow update with just ownership check (not existence check) to handle merge operations
-      allow update: if isOwner(userId);
+      allow create: if isOwner(userId) && isNewUserValid(userId);
+      allow update: if isOwner(userId) && isUserDataImmutable();
       allow delete: if isExistingOwner(userId);
     }
 
