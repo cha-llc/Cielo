@@ -22,9 +22,8 @@ import {
   Firestore,
   serverTimestamp,
 } from 'firebase/firestore';
-import { useFirebase }from '@/firebase/provider';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-
+import { useFirebase } from '@/firebase/provider';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 // This is the shape of the user profile data stored in Firestore
 export type UserProfile = {
@@ -115,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setAppUser(fallbackUser);
           }
         } catch (error) {
-          console.error("Error fetching user profile:", error);
+          console.error('Error fetching user profile:', error);
           setAppUser(null);
         } finally {
           setProfileLoading(false);
@@ -141,7 +140,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [appUser]);
 
-
   const login = useCallback(
     async (email: string, pass: string): Promise<void> => {
       if (!auth) throw new Error('Firebase Auth not available');
@@ -156,7 +154,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: string,
       password: string
     ): Promise<void> => {
-      if (!auth || !firestore) throw new Error('Firebase services not available');
+      if (!auth || !firestore)
+        throw new Error('Firebase services not available');
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -173,7 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         birthdate: null,
         createdAt: serverTimestamp(),
       };
-      
+
       const userRef = doc(firestore, 'users', user.uid);
       await setDoc(userRef, newUserProfile);
     },
@@ -187,11 +186,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateProfile = useCallback(
     async (data: Partial<AppUser>): Promise<void> => {
-        if (!appUser || !firestore) throw new Error('User or Firestore not available');
-        const userRef = doc(firestore, 'users', appUser.uid);
-        // Use blocking update to ensure the operation completes before returning
+      if (!appUser || !firestore)
+        throw new Error('User or Firestore not available');
+      const userRef = doc(firestore, 'users', appUser.uid);
+      try {
         await setDoc(userRef, data, { merge: true });
-        setAppUser(prev => prev ? { ...prev, ...data } : null);
+        setAppUser(prev => (prev ? { ...prev, ...data } : null));
+      } catch (error) {
+        throw new FirestorePermissionError({
+          path: userRef.path,
+          operation: 'update',
+          requestResourceData: data,
+        });
+      }
     },
     [appUser, firestore]
   );
@@ -205,8 +212,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const value = {
-    // Use firebaseUser for auth check, not appUser (profile data)
-    // This ensures login works even if profile fetch is slow or fails
     isLoggedIn: !!firebaseUser,
     isLoading: isUserLoading || (!!firebaseUser && isProfileLoading),
     user: appUser,
