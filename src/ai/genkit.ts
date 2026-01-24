@@ -1,5 +1,6 @@
+import 'server-only';
 import { genkit } from 'genkit';
-import { openAI } from '@genkit-ai/openai'; 
+import { openAI } from '@genkit-ai/openai';
 
 export const ai = genkit({
   plugins: [
