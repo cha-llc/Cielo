@@ -29,12 +29,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  experimental: {
-    // ❌ 'allowedDevOrigins' is not a valid key in Next.js 15+
-    // allowedDevOrigins: [
-    //   'https://6000-firebase-studio-1768648633158.cluster-57i2ylwve5fskth4xb2kui2ow2.cloudworkstations.dev'
-    // ]
-  },
 };
 
 export default nextConfig;
