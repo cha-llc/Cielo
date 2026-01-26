@@ -5,7 +5,7 @@ import { openAI } from '@genkit-ai/openai';
 export const ai = genkit({
   plugins: [
     openAI({
-      apiKey: process.env.OPENAI_API_KEY!,
+      apiKey: process.env.local OPENAI_API_KEY!,
     }),
   ],
   model: 'openai/gpt-4.1',
