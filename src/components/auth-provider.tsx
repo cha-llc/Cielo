@@ -11,12 +11,14 @@ import {
   Auth,
   User as FirebaseUser,
   createUserWithEmailAndPassword,
+  deleteUser,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   signOut,
 } from 'firebase/auth';
 import {
   doc,
+  deleteDoc,
   setDoc,
   getDoc,
   Firestore,
@@ -48,6 +50,7 @@ type AuthContextType = {
   logout: () => Promise<void>;
   updateProfile: (data: Partial<AppUser>) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
+  deleteAccount: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -237,6 +240,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [auth]
   );
 
+  const deleteAccount = useCallback(async (): Promise<void> => {
+    if (!auth || !firestore) {
+      throw new Error('Firebase services not available');
+    }
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error('No authenticated user found.');
+    }
+
+    try {
+      // Remove user profile document first (if it exists).
+      await deleteDoc(doc(firestore, 'users', currentUser.uid));
+    } catch (error) {
+      console.error('Failed to delete user profile document:', error);
+    }
+
+    try {
+      await deleteUser(currentUser);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('requires-recent-login')) {
+        throw new Error('Please reauthenticate and try again to delete your account.');
+      }
+      throw error;
+    }
+  }, [auth, firestore]);
+
   const value = {
     isLoggedIn: !!firebaseUser,
     isLoading: isUserLoading || (!!firebaseUser && isProfileLoading),
@@ -246,6 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     updateProfile,
     sendPasswordReset,
+    deleteAccount,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -17,6 +17,32 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/hooks/use-translation';
 
+const storageKey = 'cielo.journalEntries';
+const todayISO = () => new Date().toISOString().slice(0, 10);
+const buildTitle = (content: string) => {
+  const words = content.trim().split(/\s+/).slice(0, 6).join(' ');
+  return words || 'Mood Journal Entry';
+};
+
+const saveMoodEntry = (content: string) => {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    const existing = raw ? (JSON.parse(raw) as any[]) : [];
+    const entry = {
+      id: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : String(Date.now()),
+      title: buildTitle(content),
+      content,
+      date: todayISO(),
+      createdAt: Date.now(),
+      type: 'mood' as const,
+    };
+    const next = Array.isArray(existing) ? [entry, ...existing] : [entry];
+    localStorage.setItem(storageKey, JSON.stringify(next));
+  } catch {
+    // Ignore localStorage errors.
+  }
+};
+
 const formSchema = z.object({
   journalEntry: z.string().min(10, {
     message: 'Your journal entry must be at least 10 characters long.',
@@ -49,6 +75,7 @@ export default function JournalPage() {
         description: result.analysis,
       });
     } else {
+      saveMoodEntry(values.journalEntry.trim());
       setAnalysis(result);
     }
     setIsLoading(false);

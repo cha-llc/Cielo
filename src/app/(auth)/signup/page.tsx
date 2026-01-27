@@ -16,9 +16,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FirebaseError } from 'firebase/app';
 
 const formSchema = z.object({
@@ -30,6 +30,7 @@ const formSchema = z.object({
 export default function SignupPage() {
   const { signup } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -41,6 +42,26 @@ export default function SignupPage() {
       password: '',
     },
   });
+
+  useEffect(() => {
+    const deletedParam = searchParams.get('deleted');
+    const deletedFlag =
+      typeof window !== 'undefined' &&
+      window.localStorage.getItem('cielo:accountDeleted') === '1';
+
+    if (deletedParam === '1' || deletedFlag) {
+      toast({
+        title: 'Account deleted',
+        description: 'Your account has been deleted successfully.',
+      });
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('cielo:accountDeleted');
+      }
+      if (deletedParam === '1') {
+        router.replace('/signup');
+      }
+    }
+  }, [router, searchParams, toast]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);

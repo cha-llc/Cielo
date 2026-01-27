@@ -14,6 +14,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Card,
   CardContent,
@@ -51,9 +53,13 @@ const formSchema = z.object({
 });
 
 export default function ProfilePage() {
-  const { user, updateProfile, logout } = useAuth();
+  const { user, updateProfile, logout, deleteAccount } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleteReason, setDeleteReason] = useState('');
+  const [deleteSuggestions, setDeleteSuggestions] = useState('');
   const router = useRouter();
   const { t, setLanguage, language } = useTranslation();
 
@@ -129,6 +135,59 @@ export default function ProfilePage() {
       title: t('logout_success_title'),
       description: t('logout_success_description'),
     });
+  };
+
+  const deleteAccountSystemPrompt = `Please delete my Cielo account.
+
+Account details:
+- Email: ${user?.email || 'Unknown'}
+- User ID: ${user?.uid || 'Unknown'}
+- Requested at: ${new Date().toISOString()}
+
+Deletion reason:
+${deleteReason.trim() || 'No reason provided.'}
+
+Suggestions to improve the app:
+${deleteSuggestions.trim() || 'No suggestions provided.'}
+
+This request was initiated from the Cielo Profile & Settings page.`;
+
+  const deleteAccountMailto = `mailto:cs@cjhadisa.com?subject=${encodeURIComponent(
+    'Account deletion request'
+  )}&body=${encodeURIComponent(deleteAccountSystemPrompt)}`;
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm.trim().toUpperCase() !== 'DELETE') {
+      toast({
+        variant: 'destructive',
+        title: 'Confirmation required',
+        description: 'Type DELETE to confirm account removal.',
+      });
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      window.open(deleteAccountMailto, '_blank');
+      await deleteAccount();
+      toast({
+        title: 'Account deleted',
+        description: 'Your account has been permanently removed.',
+      });
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('cielo:accountDeleted', '1');
+      }
+      router.push('/signup?deleted=1');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete account.';
+      toast({
+        variant: 'destructive',
+        title: 'Delete failed',
+        description: message,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -291,6 +350,54 @@ export default function ProfilePage() {
               </div>
             </form>
           </Form>
+        </CardContent>
+      </Card>
+
+      <Card className="mx-auto mt-6 max-w-2xl border-destructive/40">
+        <CardHeader>
+          <CardTitle className="text-destructive">Delete Account</CardTitle>
+          <CardDescription>
+            This permanently removes your account and profile data. This action cannot be undone.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="delete-reason">Why are you deleting your account?</Label>
+            <Textarea
+              id="delete-reason"
+              value={deleteReason}
+              onChange={event => setDeleteReason(event.target.value)}
+              placeholder="Share your reason (optional)"
+              className="min-h-[100px]"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="delete-suggestions">How can we make the app better?</Label>
+            <Textarea
+              id="delete-suggestions"
+              value={deleteSuggestions}
+              onChange={event => setDeleteSuggestions(event.target.value)}
+              placeholder="Share suggestions (optional)"
+              className="min-h-[100px]"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="delete-confirm">Type DELETE to confirm</Label>
+            <Input
+              id="delete-confirm"
+              value={deleteConfirm}
+              onChange={event => setDeleteConfirm(event.target.value)}
+              placeholder="DELETE"
+            />
+          </div>
+          <Button
+            variant="destructive"
+            onClick={handleDeleteAccount}
+            disabled={isDeleting}
+            className="w-full sm:w-auto"
+          >
+            {isDeleting ? 'Deleting...' : 'Delete My Account'}
+          </Button>
         </CardContent>
       </Card>
     </div>

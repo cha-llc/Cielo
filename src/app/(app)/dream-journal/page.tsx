@@ -9,14 +9,63 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useTranslation } from '@/hooks/use-translation';
+import { useAuth } from '@/hooks/use-auth';
+import Link from 'next/link';
 
+
+const storageKey = 'cielo.journalEntries';
+const todayISO = () => new Date().toISOString().slice(0, 10);
+const buildTitle = (content: string) => {
+  const words = content.trim().split(/\s+/).slice(0, 6).join(' ');
+  return words || 'Dream Journal Entry';
+};
+
+const saveDreamEntry = (content: string) => {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    const existing = raw ? (JSON.parse(raw) as any[]) : [];
+    const entry = {
+      id: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : String(Date.now()),
+      title: buildTitle(content),
+      content,
+      date: todayISO(),
+      createdAt: Date.now(),
+      type: 'dream' as const,
+    };
+    const next = Array.isArray(existing) ? [entry, ...existing] : [entry];
+    localStorage.setItem(storageKey, JSON.stringify(next));
+  } catch {
+    // Ignore localStorage errors.
+  }
+};
 
 export default function DreamJournalPage() {
+  const { user } = useAuth();
   const [dream, setDream] = useState('');
   const [interpretation, setInterpretation] = useState<DreamInterpretation>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { language } = useTranslation();
+
+  if (!user?.isUpgraded) {
+    return (
+      <div className="container mx-auto p-4 sm:p-6 md:p-8">
+        <Card className="mx-auto max-w-2xl">
+          <CardHeader>
+            <CardTitle>Dream Journal (Pro)</CardTitle>
+            <CardDescription>
+              This feature is available to Cielo Pro members.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="w-full sm:w-auto">
+              <Link href="/pricing">Upgrade to Pro</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const handleInterpret = async () => {
     if (dream.trim().length < 20) {
@@ -37,6 +86,7 @@ export default function DreamJournalPage() {
             description: result.analysis,
         });
     } else {
+        saveDreamEntry(dream.trim());
         setInterpretation(result);
     }
     setIsLoading(false);

@@ -6,6 +6,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { Check, Sparkles, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { loadStripe } from '@stripe/stripe-js';
+import { useFirebase } from '@/firebase/provider';
 
 const freeFeatures = [
   'Daily AI Affirmations',
@@ -24,12 +26,20 @@ const proFeatures = [
   'Priority Support',
 ];
 
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
+);
+const starterLookupKey = process.env.NEXT_PUBLIC_STRIPE_PRICE_LOOKUP_KEY ?? '';
+const proLookupKey = process.env.NEXT_PUBLIC_STRIPE_PRO_LOOKUP_KEY ?? '';
+
 export default function PricingPage() {
   const { user, updateProfile } = useAuth();
+  const { auth } = useFirebase();
   const { toast } = useToast();
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [isDowngrading, setIsDowngrading] = useState(false);
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (lookupKey?: string) => {
     if (!user) {
       toast({
         variant: 'destructive',
@@ -41,13 +51,38 @@ export default function PricingPage() {
 
     setIsUpgrading(true);
     try {
-      // Update user profile to set isUpgraded to true
-      await updateProfile({ isUpgraded: true });
-      
-      toast({
-        title: 'Upgrade Successful!',
-        description: 'Welcome to Cielo Pro! You now have access to all premium features.',
+      if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+        throw new Error('Stripe publishable key is not configured.');
+      }
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error('No authenticated user found.');
+      }
+      const idToken = await currentUser.getIdToken();
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ lookupKey }),
       });
+
+      if (!response.ok) {
+        throw new Error('Unable to start checkout. Please try again.');
+      }
+
+      const { sessionId } = await response.json();
+      const stripe = await stripePromise;
+
+      if (!stripe) {
+        throw new Error('Stripe is not configured.');
+      }
+
+      const { error } = await stripe.redirectToCheckout({ sessionId });
+      if (error) {
+        throw error;
+      }
     } catch (error) {
       console.error('Upgrade error:', error);
       toast({
@@ -57,6 +92,35 @@ export default function PricingPage() {
       });
     } finally {
       setIsUpgrading(false);
+    }
+  };
+
+  const handleDowngrade = async () => {
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Please log in to manage your plan.',
+      });
+      return;
+    }
+
+    setIsDowngrading(true);
+    try {
+      await updateProfile({ isUpgraded: false });
+      toast({
+        title: 'Plan Downgraded',
+        description: 'You are now on the Standard plan.',
+      });
+    } catch (error) {
+      console.error('Downgrade error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Downgrade Failed',
+        description: error instanceof Error ? error.message : 'Failed to downgrade. Please try again.',
+      });
+    } finally {
+      setIsDowngrading(false);
     }
   };
 
@@ -90,9 +154,27 @@ export default function PricingPage() {
             </ul>
           </CardContent>
           <CardFooter>
-            <Button variant="outline" className="w-full" disabled>
-              Your Current Plan
-            </Button>
+            {user?.isUpgraded ? (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleDowngrade}
+                disabled={isDowngrading}
+              >
+                {isDowngrading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Downgrading...
+                  </>
+                ) : (
+                  'Downgrade to Standard'
+                )}
+              </Button>
+            ) : (
+              <Button variant="outline" className="w-full" disabled>
+                Your Current Plan
+              </Button>
+            )}
           </CardFooter>
         </Card>
 
@@ -121,12 +203,12 @@ export default function PricingPage() {
           <CardFooter>
             {user?.isUpgraded ? (
               <Button className="w-full" disabled>
-                You are a Pro Member
+                Your Current Plan
               </Button>
             ) : (
               <Button 
                 className="w-full" 
-                onClick={handleUpgrade}
+                onClick={() => handleUpgrade(proLookupKey || undefined)}
                 disabled={isUpgrading}
               >
                 {isUpgrading ? (
@@ -145,6 +227,7 @@ export default function PricingPage() {
           </CardFooter>
         </Card>
       </div>
+
     </div>
   );
 }
