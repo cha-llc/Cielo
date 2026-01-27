@@ -1,12 +1,12 @@
 import 'server-only';
 import { genkit } from 'genkit';
-import { openAI } from '@genkit-ai/openai';
+import { googleAI } from '@genkit-ai/google-genai';
 
 export const ai = genkit({
   plugins: [
-    openAI({
-      apiKey: process.env.localOPENAI_API_KEY!,
+    googleAI({
+      apiKey: process.env.GOOGLE_GENAI_API_KEY!,
     }),
   ],
-  model: 'openai/gpt-4.1',
+  model: 'googleai/gemini-2.5-flash',
 });
